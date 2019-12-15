@@ -1,3 +1,5 @@
+# non-standard libraries: bcrypt
+
 import enum
 import sqlite3
 import time
@@ -8,9 +10,11 @@ from abc import ABC, abstractmethod, abstractproperty
 
 # Local Imports
 from Classes.DatabaseInterface import DatabaseInterface
-from Classes.UserAccounts import UserDefault, UserType, User_Details_Column_Values
+from Classes.UserAccounts import UserDefault
 
 ########################################################     Interface    ###########################################
+# Note to self: create another database for "unexpected_DB_changes_log" for instance, when the
+# balance is recalculated based on past orders and it doesn't match the balance saved to the profile
 
 
 class consoleInterface:
@@ -33,18 +37,23 @@ class consoleInterface:
         }[__option]()
 
     def login_menu_and_process(self):
-        # Maybe use get the user dictionary here and send off parameters into the other functions
-        # self.identify_user()
         __email_address = self.ask_valid_email_address()
-        if(self.user_account.update_local_user_info_list(__email_address)):
+
+        if(self.user_account.does_email_exist(__email_address)):
             print("ERROR - Account NOT FOUND")
             self.menu_first_access()
-
-        if(self.authentificate_user(__email_address)):
-            self.menu_tool_owner_account()
         else:
-            print("ERROR - Wrong Password")
-            self.menu_first_access()
+            if(self.authentificate_user(__email_address)):
+                __account_user_type = self.user_account.get_user_type()
+                if (__account_user_type == "Tool_User"):
+                    self.menu_default_user_account()
+                elif (__account_user_type == "Tool_Owner"):
+                    self.menu_tool_owner_account()
+                else:
+                    print("Error - Type of User Unknown")
+            else:
+                print("ERROR - Wrong Password")
+        self.menu_first_access()
 
     def register_menu_and_process(self):
         new_user_information = (
@@ -61,11 +70,10 @@ class consoleInterface:
             self.ask_user_type()
         )
         self.user_account.register(new_user_information)
-        # if(self.user_account.local_user_info_list)
 
     def menu_tool_owner_account(self):
         print("1: Go to default menu page")
-        print("2: Register tool:")
+        print("2: Register tool")
         print("3: Log Out")
 
         self.print_select_your_option()
@@ -166,13 +174,16 @@ class consoleInterface:
         return __email_address
 
     def ask_user_type(self):
-        print("What type of user do you want to register as?")
+        print("As what type of user do you want to register?")
         print("1: Tool User")
-        print("2: Tool Owner - This type allows you to rent out tools and do everything that the tool user can do")
+        print("2: Tool Owner - This will require proof of residency")
         self.print_select_your_option()
         __option = self.get_valid_option(1, 2)
-        __user_type = UserType(__option)
-        return str(__user_type)
+        __user_type = {
+            1: "Tool_User",
+            2: "Tool_Owner",
+        }[__option]
+        return __user_type
 
     def ask_user_password(self):
         __password = input("Please enter your password: ")
@@ -189,7 +200,7 @@ class consoleInterface:
         return __hashed_password
 
     def escape(self):
-        # DO Nothing, useful for the workaround switch "statements"
+        # DO Nothing, useful for the workaround "switch statements"
         pass
 
     ########################################################    Main Program    ###########################################

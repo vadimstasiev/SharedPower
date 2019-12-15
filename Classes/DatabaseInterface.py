@@ -9,6 +9,7 @@ class DatabaseInterface:
         self.dbConnection = sqlite3.connect(f"{__databaseName}.db")
         self.dbCursor = self.dbConnection.cursor()
 
+        # The following line doesn't do anything if the table already exists
         self.__create_table(__mainTableName, __databaseColumnTupleInput)
 
     def __del__(self):
@@ -53,7 +54,7 @@ class DatabaseInterface:
                   " VALUES" + __sqliteQueryStr)
 
     # e.g. __identifying_exp = "Value3 = 342.54 AND Value4 = 'Cookie Master'"
-    def read_from_database(self, __identifying_exp: str):
+    def fetch_line_from_database(self, __identifying_exp: str):
         try:
             self.dbCursor.execute(
                 "SELECT * FROM " + self.selected_table + " WHERE " + __identifying_exp)
