@@ -10,9 +10,9 @@ from enum import Enum, auto
 from Classes.DatabaseInterface import DatabaseInterface
 
 
-class User_Details_Table(enum.Enum):
+class E_User_Details_Table(enum.Enum):
     # this enum is to be used with: fetched_user_details
-    Unique_ID = 0
+    Unique_User_ID = 0
     First_Name = 1
     Surname = 2
     Date_of_Birth = 3
@@ -31,6 +31,7 @@ class UserDefault():
         self.database_name = "Database"
         self.user_details_table = "User_Details"
         self.orders_table = "Orders"
+        self.inventory_table = "Tool_Inventory"
         self.fetched_user_details = []
 
         # The following parameters will be used to create the table column values if it's not already created
@@ -38,7 +39,7 @@ class UserDefault():
             self.database_name,
             self.user_details_table,
             # Remember to update the enum if any of the these values gets changed
-            "Unique_ID", int,
+            "Unique_User_ID", int,
             "First_Name", str,
             "Surname", str,
             "Date_of_Birth", str,
@@ -50,38 +51,54 @@ class UserDefault():
             "Outstanding_Balance", int,
             "Type_of_User", str
         )
-        # self.dbInterface.create_table(
-        #     self.database_name,
-        #     self.orders_table,
-        #     "Order_Date", str,
-        #     "Item_Number", int,
-        #     "Price", int,
-        #     "Pick_Up_Fee", int,
-        #     "Drop_Off_Fee", int,
-        #     "Pick_Up_Date", str,
-        #     "Drop_Off_Date", str,
-        #     "Customer_    Feedback", str
-        # )
+        self.dbInterface.create_table(
+            self.orders_table,
+            "Order_Date", str,
+            "Item_Number", int,
+            "Price", int,
+            "Pick_Up_Fee", int,
+            "Drop_Off_Fee", int,
+            "Pick_Up_Date", str,
+            "Drop_Off_Date", str,
+            "Customer_Feedback", str
+        )
+        self.dbInterface.create_table(
+            self.inventory_table,
+            "Item_Number", int,
+            "Item_Name", str,
+            "Half_Day_Fee", int,
+            "Full_Day_Fee", int,
+            "Description", str,
+            "Availability", str,
+            "User_ID", int
+        )
 
-    def register(self, *argv: tuple):
-        # write stuff to database
+    def register(self, *argv):
+        self.dbInterface.select_table(self.user_details_table)
         self.dbInterface.data_entry(argv)
-        self.fetched_user_details = list(argv)
+
+    def register_tool(self, *argv):
+        self.dbInterface.select_table(self.inventory_table)
+        tool_info_and_owner = list(argv)
+        tool_info_and_owner.append(
+            self.fetched_user_details[E_User_Details_Table.Unique_User_ID.value])
+
+        self.dbInterface.data_entry(tuple(tool_info_and_owner))
 
     def does_email_exist(self, __user_email: str):
         return self.update_fetched_user_details(__user_email)
 
     def update_fetched_user_details(self, __user_email: str):
         try:
-            __all_rows_that_match_the_email = self.dbInterface.fetch_line_from_database(
+            __list_line_results = self.dbInterface.fetch_line_from_database(
                 f"Email_Address = '{__user_email}'")
-            self.fetched_user_details = __all_rows_that_match_the_email[0]
+            self.fetched_user_details = __list_line_results[0]
             print(self.fetched_user_details)
-            if(len(__all_rows_that_match_the_email) > 1):
+            if(len(__list_line_results) > 1):
                 print("Database ERROR - There is more than 1 match for the given email")
-            return False
-        except:
             return True
+        except:
+            return False
 
     @staticmethod
     def generate_hashed_password(__password: str):
@@ -99,12 +116,12 @@ class UserDefault():
         # check if email exists
         # get password hash from database
         __byte_str_pw = __password.encode("utf-8")
-        __byte_str_password_hash = self.fetched_user_details[User_Details_Table.Password_Hash.value].encode(
+        __byte_str_password_hash = self.fetched_user_details[E_User_Details_Table.Password_Hash.value].encode(
             "utf-8")
         return True if bcrypt.checkpw(__byte_str_pw, __byte_str_password_hash) else False
 
     def get_user_type(self):
-        return self.fetched_user_details[User_Details_Table.Type_of_User.value]
+        return self.fetched_user_details[E_User_Details_Table.Type_of_User.value]
 
     def deliver_to_depot(self, tool):
         # Call the tool as being delivered from the tool class

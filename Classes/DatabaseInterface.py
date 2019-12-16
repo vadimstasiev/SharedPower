@@ -40,18 +40,18 @@ class DatabaseInterface:
         print("#"*100)
 
     def data_entry(self, argv: tuple):
-        __sqliteQueryStr = self.tuple_to_SQLite_param(
-            self.quotate_strings_in_a_list(argv))
         try:
             self.dbCursor.execute(
-                "INSERT INTO " + self.selected_table + " VALUES" + __sqliteQueryStr)
+                "INSERT INTO " + self.selected_table + " VALUES " + str(argv))
             self.dbConnection.commit()
             print("INSERT INTO " + self.selected_table +
-                  " VALUES" + __sqliteQueryStr)
+                  " VALUES " + str(argv))
         except:
             print("Error - Make sure you are passing in enough parameters to match the table where the data is being entered")
+            print(
+                "And make sure that the following SQL query is correct and that the types are also correct:")
             print("INSERT INTO " + self.selected_table +
-                  " VALUES" + __sqliteQueryStr)
+                  " VALUES " + str(argv))
 
     # e.g. __identifying_exp = "Value3 = 342.54 AND Value4 = 'Cookie Master'"
     def fetch_line_from_database(self, __identifying_exp: str):
@@ -85,19 +85,26 @@ class DatabaseInterface:
             pass
 
     ##### Class method functionality #####
-    def quotate_strings_in_a_list(self, __a_tuple: tuple):
-        __a_list = list(__a_tuple)
-        for __i in range(0, len(__a_list)):
-            if(type(__a_list[__i]) == str):
-                __a_list[__i] = "'" + __a_list[__i] + "'"
-        return __a_list
 
-    def tuple_to_SQLite_param(self, __tupleToProcess: tuple):
-        __sqliteQueryStr = ""
-        for __i in __tupleToProcess:
-            __sqliteQueryStr += str(__i) + ", "
-        __sqliteQueryStr = __sqliteQueryStr[:len(__sqliteQueryStr)-2]
-        return __sqliteQueryStr
+    # OBSOLETE as well, I think
+    # def quotate_strings_in_a_list(self, __a_tuple: tuple):
+    #     __a_list = list(__a_tuple)
+    #     for __i in range(0, len(__a_list)):
+    #         if(type(__a_list[__i]) == str):
+    #             __a_list[__i] = "'" + __a_list[__i] + "'"
+    #     return __a_list
+
+    # tuple_to_SQLite_param is OBSOLETE, the built-in str() function already does this, LOL
+    # def tuple_to_SQLite_param(self, __tupleToProcess: tuple):
+    #     __sqliteQueryStr = ""
+    #     for __i in __tupleToProcess:
+    #         if __i == None:
+    #             __k = "No value"
+    #         else:
+    #             __k = __i
+    #         __sqliteQueryStr += str(__k) + ", "
+    #     __sqliteQueryStr = __sqliteQueryStr[:len(__sqliteQueryStr)-2]
+    #     return __sqliteQueryStr
 
     def query_generator_column_values(self, __databaseColumnTupleInput: tuple):
         __databaseColumnList = list(__databaseColumnTupleInput)
@@ -121,7 +128,7 @@ class DatabaseInterface:
         for __k in range(0, len(__localWorkingTypeStrList)):
             __localFinalStrList.extend(
                 [__localWorkingValueStrList[__k] + __localWorkingTypeStrList[__k]])
-        return self.tuple_to_SQLite_param(tuple(__localFinalStrList))
+        return str(tuple(__localFinalStrList))
 
     def unsupported_type(self):
         print("Error - Unsupported database type")

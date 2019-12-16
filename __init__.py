@@ -36,53 +36,26 @@ class consoleInterface:
             3: self.escape
         }[__option]()
 
-    def login_menu_and_process(self):
-        __email_address = self.ask_valid_email_address()
-
-        if(self.user_account.does_email_exist(__email_address)):
-            print("ERROR - Account NOT FOUND")
-            self.menu_first_access()
-        else:
-            if(self.authentificate_user(__email_address)):
-                __account_user_type = self.user_account.get_user_type()
-                if (__account_user_type == "Tool_User"):
-                    self.menu_default_user_account()
-                elif (__account_user_type == "Tool_Owner"):
-                    self.menu_tool_owner_account()
-                else:
-                    print("Error - Type of User Unknown")
-            else:
-                print("ERROR - Wrong Password")
-        self.menu_first_access()
-
-    def register_menu_and_process(self):
-        new_user_information = (
-            UserDefault.generate_unique_ID(),
-            input("Please enter your first name: "),
-            input("Please enter your surname: "),
-            self.ask_valid_date_of_birth(),
-            self.ask_phone_number(),
-            input("Please enter your home address: "),
-            input("Please enter your post code: "),
-            self.ask_valid_email_address(),
-            self.get_hashed_password(),
-            0,                                           # Outstanding Balance
-            self.ask_user_type()
-        )
-        self.user_account.register(new_user_information)
-
     def menu_tool_owner_account(self):
         print("1: Go to default menu page")
         print("2: Register tool")
-        print("3: Log Out")
+        print("3: Search for tools")
+        print("4: View current orders")
+        print("5: View Purchase History")
+        print("6: View next Invoice")
+        print("7: Log Out")
 
         self.print_select_your_option()
 
-        __option = self.get_valid_option(1, 3)
+        __option = self.get_valid_option(1, 7)
         __switch = {
             1: self.menu_default_user_account,
             2: self.register_tool,
-            3: self.escape
+            3: self.menu_search_for_tools,
+            4: self.menu_view_current_orders,
+            5: self.menu_view_purchase_history,
+            6: self.menu_view_next_invoice,
+            7: self.escape
         }[__option]()
 
     def menu_default_user_account(self):
@@ -115,8 +88,53 @@ class consoleInterface:
     def menu_view_next_invoice(self):
         print("This is the menu to view the next invoice")
 
+    def login_menu_and_process(self):
+        __email_address = self.ask_valid_email_address()
+
+        if not (self.user_account.does_email_exist(__email_address)):
+            print("ERROR - Account NOT FOUND")
+            self.menu_first_access()
+        else:
+            # sessionID
+            if(self.authentificate_user(__email_address)):
+                __account_user_type = self.user_account.get_user_type()
+                if (__account_user_type == "Tool_User"):
+                    self.menu_default_user_account()
+                elif (__account_user_type == "Tool_Owner"):
+                    self.menu_tool_owner_account()
+                else:
+                    print("Error - Type of User Unknown")
+            else:
+                print("ERROR - Wrong Password")
+        self.menu_first_access()
+
+    def register_menu_and_process(self):
+        self.user_account.register(
+            UserDefault.generate_unique_ID(),
+            input("Please enter your first name: "),
+            input("Please enter your surname: "),
+            self.ask_valid_date_of_birth(),
+            self.ask_phone_number(),
+            input("Please enter your home address: "),
+            input("Please enter your post code: "),
+            self.ask_valid_email_address(),
+            self.get_hashed_password(),
+            0,                                           # Outstanding Balance
+            self.ask_user_type()
+        )
+        self.menu_first_access()
+
     def register_tool(self):
-        print("This is the the interface to register a tool")
+        # new_tool
+        self.user_account.register_tool(
+            UserDefault.generate_unique_ID(),
+            input("Please enter the item name: "),
+            self.get_valid_price("Please enter the half-day fee: "),
+            self.get_valid_price("Please enter the full-day fee: "),
+            input("Please enter the tool description: "),
+            input("Please enter the availability of the tool: "),
+        )
+        self.menu_tool_owner_account()
 
     def view_own_tool_inventory(self):
         print("This is the the interface to view the tool inventory")
@@ -146,6 +164,29 @@ class consoleInterface:
                 break
         return option1
 
+    def get_hashed_password(self):
+        while(True):
+            __password = input("Please enter your password(8 - 32 digits): ")
+            if 8 <= len(__password) <= 32:
+                __password_verify = input("Please verify your password: ")
+                if __password_verify == __password:
+                    break
+        __hashed_password = UserDefault.generate_hashed_password(__password)
+        return __hashed_password
+
+    def get_valid_price(self, __text: str):
+        __price = 0
+        while(True):
+            try:
+                __price = int(input(__text)) * 100
+                break
+            except:
+                print("Please enter correct price format e.g.: £20.00")
+        return __price
+
+    def get_unix_timestamp(self):
+        return int(time.time())
+
     def ask_valid_date_of_birth(self):
         try:
             print("Please enter your date of birth:")
@@ -173,10 +214,18 @@ class consoleInterface:
                 break
         return __email_address
 
+    def ask_valid_email_address_not_in_DB(self):
+        while(True):
+            __email_address = self.ask_valid_email_address()
+            if not self.user_account.does_email_exist(__email_address):
+                break
+            else:
+                print("Email already taken please choose a different one.")
+
     def ask_user_type(self):
         print("As what type of user do you want to register?")
         print("1: Tool User")
-        print("2: Tool Owner - This will require proof of residency")
+        print("2: Tool Owner - This will require proof of residency and approval")
         self.print_select_your_option()
         __option = self.get_valid_option(1, 2)
         __user_type = {
@@ -189,16 +238,6 @@ class consoleInterface:
         __password = input("Please enter your password: ")
         return __password
 
-    def get_hashed_password(self):
-        while(True):
-            __password = input("Please enter your password(8 - 32 digits): ")
-            if 8 <= len(__password) <= 32:
-                __password_verify = input("Please verify your password: ")
-                if __password_verify == __password:
-                    break
-        __hashed_password = UserDefault.generate_hashed_password(__password)
-        return __hashed_password
-
     def escape(self):
         # DO Nothing, useful for the workaround "switch statements"
         pass
@@ -207,5 +246,3 @@ class consoleInterface:
 
 
 runInterface = consoleInterface()
-# runDatabaseInterface = DatabaseInterface(
-#   "This is My database", "value_1", "idkwtf")
