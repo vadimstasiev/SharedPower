@@ -17,14 +17,14 @@ class DatabaseInterface:
 
     def __create_table(self, __name_of_table: str, __table_column_values: tuple):
         try:
-            self.dbCursor.execute("CREATE TABLE IF NOT EXISTS " + __name_of_table + " (" +
-                                  self.query_generator_column_values(__table_column_values) + ")")
-            print("CREATE TABLE IF NOT EXISTS " + __name_of_table + " (" +
-                  self.query_generator_column_values(__table_column_values) + ")")
+            self.dbCursor.execute("CREATE TABLE IF NOT EXISTS " + __name_of_table +
+                                  self.sqlite_query_param_builder(__table_column_values))
+            print("CREATE TABLE IF NOT EXISTS " + __name_of_table +
+                  self.sqlite_query_param_builder(__table_column_values))
         except:
             print("ERROR - table failed to create")
-            print("CREATE TABLE IF NOT EXISTS " + __name_of_table + " (" +
-                  self.query_generator_column_values(__table_column_values) + ")")
+            print("CREATE TABLE IF NOT EXISTS " + __name_of_table +
+                  self.sqlite_query_param_builder(__table_column_values))
         self.dbConnection.commit()
 
     def create_table(self, __name_of_table, *argv):
@@ -54,7 +54,7 @@ class DatabaseInterface:
                   " VALUES " + str(argv))
 
     # e.g. __identifying_exp = "Value3 = 342.54 AND Value4 = 'Cookie Master'"
-    def fetch_line_from_database(self, __identifying_exp: str):
+    def fetch_lines_from_database(self, __identifying_exp: str):
         try:
             self.dbCursor.execute(
                 "SELECT * FROM " + self.selected_table + " WHERE " + __identifying_exp)
@@ -84,29 +84,7 @@ class DatabaseInterface:
         except:
             pass
 
-    ##### Class method functionality #####
-
-    # OBSOLETE as well, I think
-    # def quotate_strings_in_a_list(self, __a_tuple: tuple):
-    #     __a_list = list(__a_tuple)
-    #     for __i in range(0, len(__a_list)):
-    #         if(type(__a_list[__i]) == str):
-    #             __a_list[__i] = "'" + __a_list[__i] + "'"
-    #     return __a_list
-
-    # tuple_to_SQLite_param is OBSOLETE, the built-in str() function already does this, LOL
-    # def tuple_to_SQLite_param(self, __tupleToProcess: tuple):
-    #     __sqliteQueryStr = ""
-    #     for __i in __tupleToProcess:
-    #         if __i == None:
-    #             __k = "No value"
-    #         else:
-    #             __k = __i
-    #         __sqliteQueryStr += str(__k) + ", "
-    #     __sqliteQueryStr = __sqliteQueryStr[:len(__sqliteQueryStr)-2]
-    #     return __sqliteQueryStr
-
-    def query_generator_column_values(self, __databaseColumnTupleInput: tuple):
+    def sqlite_query_param_builder(self, __databaseColumnTupleInput: tuple):
         __databaseColumnList = list(__databaseColumnTupleInput)
         __localWorkingValueStrList = []
         __localWorkingTypeStrList = []
@@ -128,7 +106,7 @@ class DatabaseInterface:
         for __k in range(0, len(__localWorkingTypeStrList)):
             __localFinalStrList.extend(
                 [__localWorkingValueStrList[__k] + __localWorkingTypeStrList[__k]])
-        return str(tuple(__localFinalStrList))
+        return str(tuple(__localFinalStrList)).replace("'", "")
 
     def unsupported_type(self):
         print("Error - Unsupported database type")

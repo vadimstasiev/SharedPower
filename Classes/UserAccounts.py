@@ -25,9 +25,14 @@ class E_User_Details_Table(enum.Enum):
     Type_of_User = 10
 
 
-class UserDefault():
+class UserClass():
 
     def __init__(self):
+        self.session_ID = 0
+        # Use this to implement a system that uses this ID to redirect
+        # the user to the correct menu (Tool Owner vs Tool User)
+        # I may save this ID to the database?
+        # Encrypt Session?
         self.database_name = "Database"
         self.user_details_table = "User_Details"
         self.orders_table = "Orders"
@@ -70,6 +75,7 @@ class UserDefault():
             "Full_Day_Fee", int,
             "Description", str,
             "Availability", str,
+            "Item_Process_State", str,
             "User_ID", int
         )
 
@@ -80,9 +86,9 @@ class UserDefault():
     def register_tool(self, *argv):
         self.dbInterface.select_table(self.inventory_table)
         tool_info_and_owner = list(argv)
+        tool_info_and_owner.append("TODO_Item_Process_State")
         tool_info_and_owner.append(
             self.fetched_user_details[E_User_Details_Table.Unique_User_ID.value])
-
         self.dbInterface.data_entry(tuple(tool_info_and_owner))
 
     def does_email_exist(self, __user_email: str):
@@ -90,7 +96,7 @@ class UserDefault():
 
     def update_fetched_user_details(self, __user_email: str):
         try:
-            __list_line_results = self.dbInterface.fetch_line_from_database(
+            __list_line_results = self.dbInterface.fetch_lines_from_database(
                 f"Email_Address = '{__user_email}'")
             self.fetched_user_details = __list_line_results[0]
             print(self.fetched_user_details)
@@ -99,6 +105,12 @@ class UserDefault():
             return True
         except:
             return False
+
+    def fetch_user_listed_inventory(self):
+        self.dbInterface.select_table(self.inventory_table)
+        __list_results = self.dbInterface.fetch_lines_from_database(
+            f"User_ID = {self.fetched_user_details[E_User_Details_Table.Unique_User_ID.value]}")
+        return __list_results
 
     @staticmethod
     def generate_hashed_password(__password: str):

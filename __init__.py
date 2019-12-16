@@ -10,7 +10,7 @@ from abc import ABC, abstractmethod, abstractproperty
 
 # Local Imports
 from Classes.DatabaseInterface import DatabaseInterface
-from Classes.UserAccounts import UserDefault
+from Classes.UserAccounts import UserClass
 
 ########################################################     Interface    ###########################################
 # Note to self: create another database for "unexpected_DB_changes_log" for instance, when the
@@ -20,7 +20,7 @@ from Classes.UserAccounts import UserDefault
 class consoleInterface:
 
     def __init__(self):
-        self.user_account = UserDefault()
+        self.user_account = UserClass()
         self.menu_first_access()
 
     def menu_first_access(self):
@@ -37,8 +37,8 @@ class consoleInterface:
         }[__option]()
 
     def menu_tool_owner_account(self):
-        print("1: Go to default menu page")
-        print("2: Register tool")
+        print("1: Register tool")
+        print("2: View Listed Inventory")
         print("3: Search for tools")
         print("4: View current orders")
         print("5: View Purchase History")
@@ -49,8 +49,8 @@ class consoleInterface:
 
         __option = self.get_valid_option(1, 7)
         __switch = {
-            1: self.menu_default_user_account,
-            2: self.register_tool,
+            1: self.register_tool,
+            2: self.menu_view_listed_inventory,
             3: self.menu_search_for_tools,
             4: self.menu_view_current_orders,
             5: self.menu_view_purchase_history,
@@ -78,6 +78,12 @@ class consoleInterface:
 
     def menu_search_for_tools(self):
         print("This is the search menu")
+
+    def menu_view_listed_inventory(self):
+        print("#"*100)
+        __list_results = self.user_account.fetch_user_listed_inventory()
+        [print(row) for row in __list_results]
+        print("#"*100)
 
     def menu_view_current_orders(self):
         print("This is the menu to view the current orders")
@@ -110,7 +116,7 @@ class consoleInterface:
 
     def register_menu_and_process(self):
         self.user_account.register(
-            UserDefault.generate_unique_ID(),
+            UserClass.generate_unique_ID(),
             input("Please enter your first name: "),
             input("Please enter your surname: "),
             self.ask_valid_date_of_birth(),
@@ -127,7 +133,7 @@ class consoleInterface:
     def register_tool(self):
         # new_tool
         self.user_account.register_tool(
-            UserDefault.generate_unique_ID(),
+            UserClass.generate_unique_ID(),
             input("Please enter the item name: "),
             self.get_valid_price("Please enter the half-day fee: "),
             self.get_valid_price("Please enter the full-day fee: "),
@@ -171,7 +177,7 @@ class consoleInterface:
                 __password_verify = input("Please verify your password: ")
                 if __password_verify == __password:
                     break
-        __hashed_password = UserDefault.generate_hashed_password(__password)
+        __hashed_password = UserClass.generate_hashed_password(__password)
         return __hashed_password
 
     def get_valid_price(self, __text: str):
