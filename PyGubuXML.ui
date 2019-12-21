@@ -1,0 +1,121 @@
+<?xml version='1.0' encoding='utf-8'?>
+<interface>
+  <object id="mainwindow" class="ttk.Frame">
+    <property name="height">200</property>
+    <property name="width">200</property>
+    <layout>
+      <property name="column">0</property>
+      <property name="propagate">True</property>
+      <property name="row">0</property>
+    </layout>
+    <child>
+      <object id="PanedWindow_1" class="tk.PanedWindow">
+        <property name="height">200</property>
+        <property name="orient">horizontal</property>
+        <property name="width">200</property>
+        <layout>
+          <property name="column">1</property>
+          <property name="padx">50</property>
+          <property name="pady">20</property>
+          <property name="propagate">True</property>
+          <property name="row">1</property>
+        </layout>
+        <child>
+          <object id="Label_1" class="tk.Label">
+            <property name="justify">center</property>
+            <property name="text" translatable="yes">Email:</property>
+            <layout>
+              <property name="column">0</property>
+              <property name="propagate">True</property>
+              <property name="row">0</property>
+            </layout>
+          </object>
+        </child>
+        <child>
+          <object id="user_email" class="tk.Entry">
+            <layout>
+              <property name="column">1</property>
+              <property name="propagate">True</property>
+              <property name="row">0</property>
+            </layout>
+          </object>
+        </child>
+        <child>
+          <object id="Label_2" class="tk.Label">
+            <property name="text" translatable="yes">Please enter your password:</property>
+            <layout>
+              <property name="column">0</property>
+              <property name="propagate">True</property>
+              <property name="row">1</property>
+            </layout>
+          </object>
+        </child>
+        <child>
+          <object id="user_password" class="tk.Entry">
+            <layout>
+              <property name="column">1</property>
+              <property name="propagate">True</property>
+              <property name="row">1</property>
+            </layout>
+          </object>
+        </child>
+        <child>
+          <object id="log_in_button" class="tk.Button">
+            <property name="text" translatable="yes">Log in</property>
+            <layout>
+              <property name="column">0</property>
+              <property name="pady">10</property>
+              <property name="propagate">True</property>
+              <property name="row">4</property>
+              <property name="sticky">e</property>
+            </layout>
+          </object>
+        </child>
+      </object>
+    </child>
+  </object>
+  <object id="Labelframe_1" class="ttk.Labelframe">
+    <property name="height">200</property>
+    <property name="text" translatable="yes">Labelframe_1</property>
+    <property name="width">200</property>
+    <layout>
+      <property name="column">0</property>
+      <property name="propagate">True</property>
+      <property name="row">0</property>
+    </layout>
+    <child>
+      <object id="Entry_4" class="tk.Entry">
+        <property name="text" translatable="yes">Entry_4</property>
+        <layout>
+          <property name="column">0</property>
+          <property name="propagate">True</property>
+          <property name="row">0</property>
+        </layout>
+      </object>
+    </child>
+    <child>
+      <object id="PanedWindow_12" class="tk.PanedWindow">
+        <property name="height">200</property>
+        <property name="orient">horizontal</property>
+        <property name="width">200</property>
+        <layout>
+          <property name="column">0</property>
+          <property name="propagate">True</property>
+          <property name="row">1</property>
+        </layout>
+      </object>
+    </child>
+    <child>
+      <object id="PanedWindow_13" class="tk.PanedWindow">
+        <property name="height">200</property>
+        <property name="orient">horizontal</property>
+        <property name="width">200</property>
+        <layout>
+          <property name="column">0</property>
+          <property name="propagate">True</property>
+          <property name="row">2</property>
+        </layout>
+      </object>
+    </child>
+  </object>
+</interface>

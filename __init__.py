@@ -4,9 +4,11 @@ import enum
 import sqlite3
 import time
 import datetime
-import random  # replace this with uuid
 from enum import auto
 from abc import ABC, abstractmethod, abstractproperty
+
+# import tkinter as tk
+from tkinter import *
 
 # Local Imports
 from Classes.DatabaseInterface import DatabaseInterface
@@ -17,24 +19,65 @@ from Classes.UserAccounts import UserClass
 # balance is recalculated based on past orders and it doesn't match the balance saved to the profile
 
 
-class consoleInterface:
-
+class guiInterface:
     def __init__(self):
         self.user_account = UserClass()
-        self.menu_first_access()
+        self.root = Tk()
+        self.root.title("Shared Power")
+        self.log_in_gui()
 
-    def menu_first_access(self):
-        print("1:Log in")
-        print("2:Register")
-        print("3:Exit")
-        self.print_select_your_option()
+    def log_in_gui(self):
+        self.root.resizable(width=False, height=False)
+        menubar = Menu(self.root)
+        forgot_password = Menu(menubar, tearoff=0)
 
-        __option = self.get_valid_option(1, 3)
-        __switch = {
-            1: self.login_menu_and_process,
-            2: self.register_menu_and_process,
-            3: self.escape
-        }[__option]()
+        forgot_password.add_command(
+            label="Contact Admin", command=self.contact_admin)
+        menubar.add_cascade(label="Forgot Password", menu=forgot_password)
+        menubar.add_command(label="Quit", command=self.root.quit)
+
+        self.root.config(menu=menubar)
+
+        __inputPanel = PanedWindow(orient=HORIZONTAL)
+        __inputPanel.grid(row=0, column=1, padx=50, pady=20)
+
+        Label(__inputPanel, text="Email").grid(row=0, sticky=W)
+        Label(__inputPanel, text="Password").grid(row=1, sticky=W)
+
+        self.email_input = Entry(__inputPanel, width=50)
+        self.password_input = Entry(__inputPanel, width=50)
+        self.email_input.grid(row=0, column=1)
+        self.password_input.grid(row=1, column=1)
+
+        submit_button = Button(self.root, text="Submit", command=self.submit_details).grid(
+            column=2, padx=20, pady=20)
+        self.textvar = StringVar()
+        self.error_message_output = Label(
+            self.root, textvariable=self.textvar, fg="#ff0000").grid(column=1)
+
+        self.root.mainloop()
+
+    def submit_details(self):
+        __email_address = self.email_input.get()
+        __password = self.password_input.get()
+
+        if not (self.user_account.does_email_exist(__email_address)):
+            self.textvar.set("ERROR - Account NOT FOUND")
+        else:
+            self.textvar.set("")
+            if(self.user_account.check_password(__email_address, __password)):
+                __account_user_type = self.user_account.get_user_type()
+                if (__account_user_type == "Tool_User"):
+                    self.menu_default_user_account()
+                elif (__account_user_type == "Tool_Owner"):
+                    self.menu_tool_owner_account()
+                else:
+                    self.textvar.set("Database Error - Type of User Unknown")
+            else:
+                self.textvar.set("ERROR - Wrong Password")
+
+    def contact_admin(self):
+        print("Contact Admin")
 
     def menu_tool_owner_account(self):
         print("1: Register tool")
@@ -94,26 +137,6 @@ class consoleInterface:
     def menu_view_next_invoice(self):
         print("This is the menu to view the next invoice")
 
-    def login_menu_and_process(self):
-        __email_address = self.ask_valid_email_address()
-
-        if not (self.user_account.does_email_exist(__email_address)):
-            print("ERROR - Account NOT FOUND")
-            self.menu_first_access()
-        else:
-            # sessionID
-            if(self.authentificate_user(__email_address)):
-                __account_user_type = self.user_account.get_user_type()
-                if (__account_user_type == "Tool_User"):
-                    self.menu_default_user_account()
-                elif (__account_user_type == "Tool_Owner"):
-                    self.menu_tool_owner_account()
-                else:
-                    print("Error - Type of User Unknown")
-            else:
-                print("ERROR - Wrong Password")
-        self.menu_first_access()
-
     def register_menu_and_process(self):
         self.user_account.register(
             UserClass.generate_unique_ID(),
@@ -128,7 +151,7 @@ class consoleInterface:
             0,                                           # Outstanding Balance
             self.ask_user_type()
         )
-        self.menu_first_access()
+        self.log_in_gui()
 
     def register_tool(self):
         # new_tool
@@ -145,9 +168,6 @@ class consoleInterface:
     def view_own_tool_inventory(self):
         print("This is the the interface to view the tool inventory")
         # get own tool inventory
-
-    def authentificate_user(self, __email_address):
-        return self.user_account.check_password(__email_address, self.ask_user_password())
 
     ##### Class method functionality #####
 
@@ -251,4 +271,4 @@ class consoleInterface:
     ########################################################    Main Program    ###########################################
 
 
-runInterface = consoleInterface()
+runInterface = guiInterface()
