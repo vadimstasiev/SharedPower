@@ -22,11 +22,11 @@ from Classes.UserAccounts import UserClass
 class guiInterface:
     def __init__(self):
         self.user_account = UserClass()
-        self.root = Tk()
-        self.root.title("Shared Power")
         self.log_in_gui()
 
     def log_in_gui(self):
+        self.reset_root()
+        self.root.title("Shared Power - Log in")
         self.root.resizable(width=False, height=False)
         menubar = Menu(self.root)
         forgot_password = Menu(menubar, tearoff=0)
@@ -49,7 +49,13 @@ class guiInterface:
         self.email_input.grid(row=0, column=1)
         self.password_input.grid(row=1, column=1)
 
-        submit_button = Button(self.root, text="Submit", command=self.submit_details).grid(
+        register_label_button = Label(
+            __inputPanel, text="Don't have an account? Click to Register", fg="#0400ff")
+        register_label_button.bind(
+            '<Button-1>', self.goto_register_menu)
+        register_label_button.grid(row=2, column=1, sticky="e")
+
+        submit_button = Button(self.root, text="Submit", command=self.process_log_in).grid(
             column=2, padx=20, pady=20)
         self.textvar = StringVar()
         self.error_message_output = Label(
@@ -57,7 +63,29 @@ class guiInterface:
 
         self.root.mainloop()
 
-    def submit_details(self):
+    def tool_user_options_gui(self):
+        self.reset_root()
+        self.root.resizable(width=False, height=False)
+        menubar = Menu(self.root)
+        log_out_menubar = Menu(menubar, tearoff=0)
+        log_out_menubar.add_command(
+            label="Log Out", command=self.log_in_gui)
+        menubar.add_cascade(label="Log Out", menu=log_out_menubar)
+
+        self.root.config(menu=menubar)
+
+        panel_1 = PanedWindow(orient=HORIZONTAL).grid()
+
+        Button(panel_1, text="Search for tools", width=30).grid(
+            ipady=15, padx=20, pady=20, sticky="w")
+        Button(panel_1, text="View current orders", width=30).grid(
+            ipady=15, padx=20, pady=20, sticky="w")
+        Button(panel_1, text="View Purchase History", width=30).grid(
+            ipady=15, padx=20, pady=20, sticky="w")
+
+        self.root.mainloop()
+
+    def process_log_in(self):
         __email_address = self.email_input.get()
         __password = self.password_input.get()
 
@@ -68,13 +96,21 @@ class guiInterface:
             if(self.user_account.check_password(__email_address, __password)):
                 __account_user_type = self.user_account.get_user_type()
                 if (__account_user_type == "Tool_User"):
-                    self.menu_default_user_account()
+                    self.tool_user_options_gui()
                 elif (__account_user_type == "Tool_Owner"):
-                    self.menu_tool_owner_account()
+                    self.tool_user_options_gui()
                 else:
                     self.textvar.set("Database Error - Type of User Unknown")
             else:
                 self.textvar.set("ERROR - Wrong Password")
+
+    def reset_root(self):
+        try:
+            self.root.destroy()
+        except:
+            pass
+        self.root = Tk()
+        self.root.title("Shared Power")
 
     def contact_admin(self):
         print("Contact Admin")
@@ -136,6 +172,9 @@ class guiInterface:
 
     def menu_view_next_invoice(self):
         print("This is the menu to view the next invoice")
+
+    def goto_register_menu(self, event):
+        self.register_menu_and_process()
 
     def register_menu_and_process(self):
         self.user_account.register(
