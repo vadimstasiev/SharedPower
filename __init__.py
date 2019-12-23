@@ -1,16 +1,17 @@
 # non-standard libraries: bcrypt
 
-import enum
-import sqlite3
 import time
 import datetime
-from enum import auto
-from abc import ABC, abstractmethod, abstractproperty
 
 # import tkinter as tk
 from tkinter import *
 
-# Local Imports
+# Import local downloaded classes
+from ImportedClasses.calendar_ import *
+from ImportedClasses.dateentry import *
+
+
+# Import local classes
 from Classes.DatabaseInterface import DatabaseInterface
 from Classes.UserAccounts import UserClass
 
@@ -38,7 +39,7 @@ class guiInterface:
 
         self.root.config(menu=menubar)
 
-        __inputPanel = PanedWindow(orient=HORIZONTAL)
+        __inputPanel = PanedWindow(self.root, orient=HORIZONTAL)
         __inputPanel.grid(row=0, column=1, padx=50, pady=20)
 
         Label(__inputPanel, text="Email").grid(row=0, sticky=W)
@@ -52,15 +53,92 @@ class guiInterface:
         register_label_button = Label(
             __inputPanel, text="Don't have an account? Click to Register", fg="#0400ff")
         register_label_button.bind(
-            '<Button-1>', self.goto_register_menu)
+            '<Button-1>', self.goto_register_user_menu)
         register_label_button.grid(row=2, column=1, sticky="e")
 
-        submit_button = Button(self.root, text="Submit", command=self.process_log_in).grid(
-            column=2, padx=20, pady=20)
+        submit_button = Button(self.root, text="Log in", command=self.process_log_in).grid(
+            column=2, padx=20, pady=20, ipadx=10, ipady=5)
         self.textvar = StringVar()
         self.error_message_output = Label(
             self.root, textvariable=self.textvar, fg="#ff0000").grid(column=1)
 
+        self.root.mainloop()
+
+    def register_user_gui(self):
+        self.reset_root()
+        self.root.title("Shared Power - Register New User")
+        self.root.resizable(width=False, height=False)
+        menubar = Menu(self.root)
+
+        menubar.add_command(label="Quit", command=self.root.quit)
+
+        self.root.config(menu=menubar)
+
+        __labelframe1 = LabelFrame(self.root, text="Register User")
+        __labelframe1.grid(ipadx=50, ipady=30, padx=5, pady=5)
+        __inputPanel = PanedWindow(__labelframe1, orient=HORIZONTAL)
+        __inputPanel.grid(row=0, column=1, padx=50, pady=20)
+
+        labels_display = [
+            ("First Name", 0),
+            ("Surname", 1),
+            ("Phone Number", 2),
+            ("Date of Birth", 3),
+            ("Post Code", 4),
+            ("Home Address", 5),
+            ("Email", 6),
+            ("Password", 7),
+            ("Confirm Password", 8),
+            ("User Type", 9)
+        ]
+        for val, label_display in enumerate(labels_display):
+            Label(__inputPanel, text=label_display[0], padx=20, pady=3).grid(
+                row=val, sticky=W)
+
+        self.first_name_input = StringVar()
+        self.surname_input = StringVar()
+        self.phone_number_input = StringVar()
+        self.post_code_input = StringVar()
+        self.home_address_input = StringVar()
+        self.email_input = StringVar()
+        self.password_input = StringVar()
+        self.confirm_password_input = StringVar()
+
+        entry_list = [
+            [self.first_name_input, 0],
+            [self.surname_input, 1],
+            [self.phone_number_input, 2],
+            [None, 3],  # skip date of birth, it has a different input
+            [self.post_code_input, 4],
+            [self.home_address_input, 5],
+            [self.email_input, 6],
+            [self.password_input, 7],
+            [self.confirm_password_input, 8]
+        ]
+        for val, entry in enumerate(entry_list):
+            if entry[0] != None:
+                entry[0] = Entry(__inputPanel, width=25)
+                entry[0].grid(row=val, column=1, columnspan=2, sticky=W)
+
+        self.date_of_birth_entry = DateEntry(
+            __inputPanel, width=22, background='darkblue', foreground='white', borderwidth=2)
+        self.date_of_birth_entry.grid(row=3, column=1, columnspan=2, sticky=W)
+        self.date_of_birth_entry.bind(
+            "<<DateEntrySelected>>", self.set_date_of_birth)
+
+        self.user_type = IntVar()
+        __radio_buttons_panel = PanedWindow(__inputPanel, orient=HORIZONTAL)
+        __radio_buttons_panel.grid(row=9, column=1, padx=10, pady=10)
+        Radiobutton(__inputPanel, text="Tool User", variable=self.user_type,
+                    value=1).grid(row=9, column=1, sticky=W)
+        Radiobutton(__inputPanel, text="Tool Owner", variable=self.user_type,
+                    value=2).grid(row=9, column=2, sticky=W)
+
+        submit_button = Button(__labelframe1, text="Register", command=self.process_register_new_user).grid(
+            column=2, ipadx=10, ipady=5)
+        self.textvar = StringVar()
+        self.error_message_output = Label(
+            __labelframe1, textvariable=self.textvar, fg="#ff0000").grid(column=1)
         self.root.mainloop()
 
     def tool_user_options_gui(self):
@@ -77,11 +155,11 @@ class guiInterface:
         panel_1 = PanedWindow(orient=HORIZONTAL).grid()
 
         Button(panel_1, text="Search for tools", width=30).grid(
-            ipady=15, padx=20, pady=20, sticky="w")
+            ipady=15, padx=20, pady=20, sticky=W)
         Button(panel_1, text="View current orders", width=30).grid(
-            ipady=15, padx=20, pady=20, sticky="w")
+            ipady=15, padx=20, pady=20, sticky=W)
         Button(panel_1, text="View Purchase History", width=30).grid(
-            ipady=15, padx=20, pady=20, sticky="w")
+            ipady=15, padx=20, pady=20, sticky=W)
 
         self.root.mainloop()
 
@@ -90,7 +168,7 @@ class guiInterface:
         __password = self.password_input.get()
 
         if not (self.user_account.does_email_exist(__email_address)):
-            self.textvar.set("ERROR - Account NOT FOUND")
+            self.textvar.set("ERROR - Account not found")
         else:
             self.textvar.set("")
             if(self.user_account.check_password(__email_address, __password)):
@@ -98,11 +176,32 @@ class guiInterface:
                 if (__account_user_type == "Tool_User"):
                     self.tool_user_options_gui()
                 elif (__account_user_type == "Tool_Owner"):
-                    self.tool_user_options_gui()
+                    self.tool_user_options_gui()  # change to tool owner once that gets created
                 else:
                     self.textvar.set("Database Error - Type of User Unknown")
             else:
                 self.textvar.set("ERROR - Wrong Password")
+
+    def process_register_new_user(self):
+        __password = self.get_hashed_password()
+        if(self.password_input.get() == self.confirm_password_input.get()):
+            self.textvar.set("")
+            self.user_account.register(
+                UserClass.generate_unique_ID(),
+                self.first_name_input.get(),
+                self.surname_input.get(),
+                self.date_of_birth_input,
+                self.phone_number_input.get(),
+                self.home_address_input.get(),
+                self.post_code_input.get(),
+                self.email_input.get(),
+                __password,
+                0,                                           # Outstanding Balance
+                "Tool_User" if self.user_type.get() == 1 else "Tool_Owner"
+            )
+            self.log_in_gui()
+        else:
+            self.textvar.set("ERROR - Passwords do not match")
 
     def reset_root(self):
         try:
@@ -173,9 +272,6 @@ class guiInterface:
     def menu_view_next_invoice(self):
         print("This is the menu to view the next invoice")
 
-    def goto_register_menu(self, event):
-        self.register_menu_and_process()
-
     def register_menu_and_process(self):
         self.user_account.register(
             UserClass.generate_unique_ID(),
@@ -210,6 +306,12 @@ class guiInterface:
 
     ##### Class method functionality #####
 
+    def set_date_of_birth(self, event):
+        self.date_of_birth_input = self.date_of_birth_entry.get_date()
+
+    def goto_register_user_menu(self, event):
+        self.register_user_gui()
+
     def print_select_your_option(self):
         print("Select your option: ", end=" ")
 
@@ -230,13 +332,12 @@ class guiInterface:
         return option1
 
     def get_hashed_password(self):
-        while(True):
-            __password = input("Please enter your password(8 - 32 digits): ")
-            if 8 <= len(__password) <= 32:
-                __password_verify = input("Please verify your password: ")
-                if __password_verify == __password:
-                    break
-        __hashed_password = UserClass.generate_hashed_password(__password)
+        __password = self.password_input.get()
+        if 8 <= len(__password) <= 32:
+            __hashed_password = UserClass.generate_hashed_password(__password)
+        else:
+            self.textvar.set("Please enter a password w/ 8 - 32 digits")
+            __hashed_password = None
         return __hashed_password
 
     def get_valid_price(self, __text: str):
@@ -310,4 +411,5 @@ class guiInterface:
     ########################################################    Main Program    ###########################################
 
 
-runInterface = guiInterface()
+if __name__ == '__main__':
+    runInterface = guiInterface()
