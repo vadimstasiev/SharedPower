@@ -1,16 +1,13 @@
-# non-standard libraries: bcrypt
+# please install the following non-standard libraries: bcrypt
 
+import sys
 import time
 import datetime
-
-# import tkinter as tk
 from tkinter import *
 
 # Import local downloaded classes
 from ImportedClasses.calendar_ import *
 from ImportedClasses.dateentry import *
-
-
 # Import local classes
 from Classes.DatabaseInterface import DatabaseInterface
 from Classes.UserAccounts import UserClass
@@ -20,69 +17,83 @@ from Classes.UserAccounts import UserClass
 # balance is recalculated based on past orders and it doesn't match the balance saved to the profile
 
 
-class guiInterface:
+class uiInterface:
     def __init__(self):
+        self.root = Tk()
         self.buffered_user_errors = []
+        self.outputed_errors_list = []
         self.user_account = UserClass()
-        self.log_in_gui()
 
-    def log_in_gui(self):
-        self.reset_root()
+    def run(self):
+        self.log_in_ui()
+
+    def log_in_ui(self):
+        self.setup_root_frame()
+        self.init_default_UI()  # this may not be needed here TODO
         self.root.title("Shared Power - Log in")
-        self.root.resizable(width=False, height=False)
-        menubar = Menu(self.root)
-        forgot_password = Menu(menubar, tearoff=0)
+        self.add_menu_bar_1()
 
-        forgot_password.add_command(
-            label="Contact Admin", command=self.contact_admin)
-        menubar.add_cascade(label="Forgot Password", menu=forgot_password)
-        menubar.add_command(label="Quit", command=self.root.quit)
-
-        self.root.config(menu=menubar)
-
-        __inputPanel = PanedWindow(self.root, orient=HORIZONTAL)
+        __inputPanel = PanedWindow(self.root_frame, orient=HORIZONTAL)
         __inputPanel.grid(row=0, column=1, padx=50, pady=20)
 
-        Label(__inputPanel, text="Email").grid(row=0, sticky=W)
-        Label(__inputPanel, text="Password").grid(row=1, sticky=W)
+        self.email_input = StringVar()
+        self.password_input = StringVar()
 
-        self.email_input = Entry(__inputPanel, width=50)
-        self.password_input = Entry(__inputPanel, width=50)
-        self.email_input.grid(row=0, column=1)
-        self.password_input.grid(row=1, column=1)
+        label_text_and_vars = [
+            ("Email", self.email_input),
+            ("Password", self.password_input),
+        ]
+        self.generate_ui_label_and_entry(
+            label_text_and_vars, __inputPanel, entry_width=40)
 
         register_label_button = Label(
             __inputPanel, text="Don't have an account? Click to Register", fg="#0400ff")
         register_label_button.bind(
             '<Button-1>', self.goto_register_user_menu)
         register_label_button.grid(row=2, column=1, sticky="e")
-
-        submit_button = Button(self.root, text="Log in", command=self.process_log_in).grid(
+        # Button for submit
+        submit_button = Button(self.root_frame, text="Log in", command=self.process_log_in).grid(
             column=2, padx=20, pady=20, ipadx=10, ipady=5)
-        self.textvar = StringVar()
-        self.error_message_output = Label(
-            self.root, textvariable=self.textvar, fg="#ff0000").grid(column=1)
-
+        # Error Message TODO better
+        # self.textvar = StringVar()
+        # self.error_message_output = Label(
+        #     self.root_frame, textvariable=self.textvar, fg="#ff0000").grid(column=1)
         self.root.mainloop()
 
-    def register_user_gui(self):
-        self.reset_root()
+    def process_log_in(self):
+        self.clear_errors()
+        __email_address = self.email_input.get()
+        __password = self.password_input.get()
+
+        if not (self.user_account.does_email_exist(__email_address)):
+            self.buffered_user_errors.append("ERROR - Account not found")
+        else:
+            self.clear_errors()
+            if(self.user_account.check_password(__email_address, __password)):
+                __account_user_type = self.user_account.get_user_type()
+                if (__account_user_type == "Tool_User"):
+                    self.tool_user_options_ui()
+                elif (__account_user_type == "Tool_Owner"):
+                    self.tool_user_options_ui()  # change to tool owner once that gets added
+                else:
+                    self.buffered_user_errors.append(
+                        "Database Error - Type of User Unknown")
+            else:
+                self.buffered_user_errors.append("ERROR - Wrong Password")
+        self.generate_ui_output_errors(self.root_frame)
+
+    def register_user_ui(self):
+        self.setup_root_frame()
+        self.init_default_UI()
         self.root.title("Shared Power - Register New User")
-        self.root.resizable(width=False, height=False)
-        menubar = Menu(self.root)
-        options = Menu(menubar, tearoff=0)
+        self.add_menu_bar_2()
 
-        options.add_command(label="Go Back", command=self.log_in_gui)
-        options.add_command(label="Quit", command=self.root.quit)
-        menubar.add_cascade(label="Options", menu=options)
-        self.root.config(menu=menubar)
-
-        self._label_frame_register = LabelFrame(
-            self.root, text="Register User")
-        self._label_frame_register.grid(ipadx=50, ipady=30, padx=5, pady=5)
-        __inputPanel = PanedWindow(
-            self._label_frame_register, orient=HORIZONTAL)
-        __inputPanel.grid(row=0, column=1, padx=50, pady=20)
+        self.Label_Frame_Reg = LabelFrame(  # TODO TODO TODO
+            self.root_frame, text="Register User")
+        self.Label_Frame_Reg.grid(ipadx=50, ipady=30, padx=5, pady=5)
+        # __inputPanel = PanedWindow(
+        #     self.Label_Frame_Reg, orient=HORIZONTAL)
+        # __inputPanel.grid(row=0, column=1, padx=50, pady=20)
 
         self.first_name_input = StringVar()
         self.surname_input = StringVar()
@@ -93,7 +104,7 @@ class guiInterface:
         self.password_input = StringVar()
         self.confirm_password_input = StringVar()
 
-        new_labels_display = [
+        label_text_and_vars = [  # None = do not generate Entry, useful for different input types
             ("First Name", self.first_name_input),
             ("Surname", self.surname_input),
             ("Phone Number", self.phone_number_input),
@@ -105,62 +116,64 @@ class guiInterface:
             ("Confirm Password", self.confirm_password_input),
             ("User Type", None)
         ]
-
-        for __line in new_labels_display:
-            label_display, var = __line
-            __index = new_labels_display.index(__line)
-            __label = Label(__inputPanel, text=label_display, padx=20, pady=3)
-            __label.grid(row=__index, sticky=W)
-            if var != None:
-                __entry = Entry(__inputPanel, width=25, textvariable=var)
-                __entry.grid(row=__index, column=1, columnspan=2, sticky=W)
+        self.generate_ui_label_and_entry(
+            label_text_and_vars, self.Label_Frame_Reg)
 
         self.date_of_birth_entry = DateEntry(
-            __inputPanel, width=22, background='darkblue', foreground='white', borderwidth=2)
+            self.Label_Frame_Reg, width=22, background='darkblue', foreground='white', borderwidth=2)
         self.date_of_birth_entry.grid(row=3, column=1, columnspan=2, sticky=W)
         self.date_of_birth_entry.bind(
             "<<DateEntrySelected>>", self.set_date_of_birth)
 
         self.user_type = IntVar()
-        __radio_buttons_panel = PanedWindow(__inputPanel, orient=HORIZONTAL)
+        __radio_buttons_panel = PanedWindow(
+            self.Label_Frame_Reg, orient=HORIZONTAL)
         __radio_buttons_panel.grid(row=9, column=1, padx=10, pady=10)
-        Radiobutton(__inputPanel, text="Tool User", variable=self.user_type,
+        Radiobutton(self.Label_Frame_Reg, text="Tool User", variable=self.user_type,
                     value=1).grid(row=9, column=1, sticky=W)
-        Radiobutton(__inputPanel, text="Tool Owner", variable=self.user_type,
+        Radiobutton(self.Label_Frame_Reg, text="Tool Owner", variable=self.user_type,
                     value=2).grid(row=9, column=2, sticky=W)
 
-        submit_button = Button(self._label_frame_register, text="Register", command=self.process_register_new_user).grid(
+        submit_button = Button(self.Label_Frame_Reg, text="Register", command=self.process_register_new_user).grid(
             column=2, ipadx=10, ipady=5)
-        self.textvar = StringVar()
-
-        self.error_message_output = Label(
-            self._label_frame_register, textvariable=self.textvar, fg="#ff0000")
-        self.error_message_output.grid(column=1)
 
         self.root.mainloop()
 
-    def register_user_gui_output_errors(self):
+    def generate_ui_label_and_entry(self, __list, __widget, **kw):
+        __label_padx = kw.pop('label_width', 20)
+        __entry_width = kw.pop('entry_width', 25)
+        for __line in __list:
+            label_display, var = __line
+            __index = __list.index(__line)
+            __label = Label(__widget, text=label_display,
+                            padx=__label_padx, pady=3)
+            __label.grid(row=__index, sticky=W)
+            if var != None:
+                __entry = Entry(__widget, width=__entry_width,
+                                textvariable=var)
+                __entry.grid(row=__index, column=1, columnspan=2, sticky=W)
+
+    def generate_ui_output_errors(self, __widget):
         __buffered_errors = self.get_buffered_user_errors()
         for __line in __buffered_errors:
             __index = __buffered_errors.index(__line) + 99
             # the number 99 is to make sure that it always stays at the bottom
-            __label = Label(self._label_frame_register,
-                            text=__line, fg="#ff0000")
+            __label = Label(__widget, text=__line, fg="#ff0000")
             __label.grid(row=__index, column=1)
+            self.outputed_errors_list.append(__label)
 
-    def tool_user_options_gui(self):
-        self.reset_root()
+    def clear_errors(self):
+        for __l in self.outputed_errors_list:
+            __l.destroy()
+
+    def tool_user_options_ui(self):
+        self.setup_root_frame()
         self.root.resizable(width=False, height=False)
-        menubar = Menu(self.root)
-        log_out_menubar = Menu(menubar, tearoff=0)
-        log_out_menubar.add_command(
-            label="Log Out", command=self.log_in_gui)
-        menubar.add_cascade(label="Log Out", menu=log_out_menubar)
 
-        self.root.config(menu=menubar)
+        self.add_menu_bar_3()
 
         panel_1 = PanedWindow(orient=HORIZONTAL).grid()
-
+        # TODO
         Button(panel_1, text="Search for tools", width=30).grid(
             ipady=15, padx=20, pady=20, sticky=W)
         Button(panel_1, text="View current orders", width=30).grid(
@@ -170,24 +183,30 @@ class guiInterface:
 
         self.root.mainloop()
 
-    def process_log_in(self):
-        __email_address = self.email_input.get()
-        __password = self.password_input.get()
+    def tool_owner_options_ui(self):
+        self.setup_root_frame()
+        self.root.resizable(width=False, height=False)
 
-        if not (self.user_account.does_email_exist(__email_address)):
-            self.textvar.set("ERROR - Account not found")
-        else:
-            self.textvar.set("")
-            if(self.user_account.check_password(__email_address, __password)):
-                __account_user_type = self.user_account.get_user_type()
-                if (__account_user_type == "Tool_User"):
-                    self.tool_user_options_gui()
-                elif (__account_user_type == "Tool_Owner"):
-                    self.tool_user_options_gui()  # change to tool owner once that gets added
-                else:
-                    self.textvar.set("Database Error - Type of User Unknown")
-            else:
-                self.textvar.set("ERROR - Wrong Password")
+        self.add_menu_bar_3()
+
+        panel_1 = PanedWindow(orient=HORIZONTAL).grid()
+        # TODO
+        Button(panel_1, text="Register tool", width=30).grid(
+            ipady=15, padx=20, pady=20, sticky=W)
+        Button(panel_1, text="View Listed Inventory", width=30).grid(
+            ipady=15, padx=20, pady=20, sticky=W)
+        Button(panel_1, text="Search for tools", width=30).grid(
+            ipady=15, padx=20, pady=20, sticky=W)
+        Button(panel_1, text="View current orders", width=30).grid(
+            ipady=15, padx=20, pady=20, sticky=W)
+        Button(panel_1, text="View Purchase History", width=30).grid(
+            ipady=15, padx=20, pady=20, sticky=W)
+        Button(panel_1, text="View next Invoice", width=30).grid(
+            ipady=15, padx=20, pady=20, sticky=W)
+        Button(panel_1, text="Log Out", width=30).grid(
+            ipady=15, padx=20, pady=20, sticky=W)
+
+        self.root.mainloop()
 
     def process_register_new_user(self):  # TODO
         __valid_email_address = self.get_valid_email_address()
@@ -206,16 +225,45 @@ class guiInterface:
             0,                                           # Outstanding Balance
             "Tool_User" if self.user_type.get() == 1 else "Tool_Owner"
         )
-        self.register_user_gui_output_errors()  # TODO needs more work
-        self.log_in_gui()
+        self.generate_ui_output_errors(
+            self.Label_Frame_Reg)  # TODO needs more work
+        self.log_in_ui()
 
-    def reset_root(self):
-        try:
-            self.root.destroy()
-        except:
-            pass
-        self.root = Tk()
+    def setup_root_frame(self):
+        __list = self.get_all_children()
+        for __child in __list:
+            __child.destroy()
+        self.root_frame = Frame(height=2, bd=1, relief=SUNKEN)
+        self.root_frame.grid()
+
+    def init_default_UI(self):
         self.root.title("Shared Power")
+        self.root.resizable(width=False, height=False)
+
+    def add_menu_bar_1(self):   # used for Login Screen
+        self.menubar = Menu(self.root)
+        __submenu = Menu(self.menubar, tearoff=0)
+        __submenu.add_command(label="Contact Admin",
+                              command=self.contact_admin)
+        self.menubar.add_cascade(label="Forgot Password", menu=__submenu)
+        self.menubar.add_command(label="Quit", command=self.quit)
+        self.root.config(menu=self.menubar)
+
+    def add_menu_bar_2(self):   # used for Register Screen
+        self.menubar = Menu(self.root)
+        __submenu = Menu(self.menubar, tearoff=0)
+        __submenu.add_command(label="Go Back", command=self.log_in_ui)
+        __submenu.add_command(label="Quit", command=self.quit)
+        self.menubar.add_cascade(label="Options", menu=__submenu)
+        self.root.config(menu=self.menubar)
+
+    def add_menu_bar_3(self):   # used for the tool users/owners UI
+        self.menubar = Menu(self.root)
+        __submenu = Menu(self.menubar, tearoff=0)
+        __submenu.add_command(label="Log Out", command=self.log_in_ui)
+        __submenu.add_command(label="Quit", command=self.quit)
+        self.menubar.add_cascade(label="Options", menu=__submenu)
+        self.root.config(menu=self.menubar)
 
     def contact_admin(self):
         print("Contact Admin")
@@ -223,50 +271,25 @@ class guiInterface:
         # Can add message inbox to admin's personal db for that stuff, logs, etc
         # Can also create an interface for an admin account
 
-    def menu_tool_owner_account(self):
-        print("1: Register tool")
-        print("2: View Listed Inventory")
-        print("3: Search for tools")
-        print("4: View current orders")
-        print("5: View Purchase History")
-        print("6: View next Invoice")
-        print("7: Log Out")
-
-        self.print_select_your_option()
-
-        __option = self.get_valid_option(1, 7)
-        __switch = {
-            1: self.register_tool,
-            2: self.menu_view_listed_inventory,
-            3: self.menu_search_for_tools,
-            4: self.menu_view_current_orders,
-            5: self.menu_view_purchase_history,
-            6: self.menu_view_next_invoice,
-            7: self.escape
-        }[__option]()
-
-    def menu_default_user_account(self):
-        pass    # done this: self.tool_user_options_gui
-
     def menu_search_for_tools(self):
-        print("This is the search menu")
+        pass  # TODO
 
-    def menu_view_listed_inventory(self):
+    def menu_view_listed_inventory(self):  # TODO
         print("#"*100)
         __list_results = self.user_account.fetch_user_listed_inventory()
         [print(row) for row in __list_results]
         print("#"*100)
 
     def menu_view_current_orders(self):
-        print("This is the menu to view the current orders")
+        pass  # TODO
 
     def menu_view_purchase_history(self):
-        print("This is the menu to view the purchase history")
+        pass  # TODO
 
     def menu_view_next_invoice(self):
-        print("This is the menu to view the next invoice")
+        pass  # TODO
 
-    def register_tool(self):
+    def register_tool(self):  # TODO
         # new_tool
         self.user_account.register_tool(
             UserClass.generate_unique_ID(),
@@ -279,16 +302,20 @@ class guiInterface:
         self.menu_tool_owner_account()
 
     def view_own_tool_inventory(self):
-        print("This is the the interface to view the tool inventory")
+        pass  # TODO
         # get own tool inventory
 
-    ##### Class method functionality #####
+    def quit(self):
+        self.root.destroy()
+        self.root.quit()
+
+    ##### random method for Class functionality #####
 
     def set_date_of_birth(self, event):
         self.date_of_birth_input = self.date_of_birth_entry.get_date()
 
     def goto_register_user_menu(self, event):
-        self.register_user_gui()
+        self.register_user_ui()
 
     def get_valid_hashed_password(self):
         __password = self.password_input.get()
@@ -313,17 +340,12 @@ class guiInterface:
     def get_unix_timestamp(self):
         return int(time.time())
 
-    def ask_user_type(self):
-        print("As what type of user do you want to register?")
-        print("1: Tool User")
-        print("2: Tool Owner - This will require proof of residency and approval")
-        self.print_select_your_option()
-        __option = self.get_valid_option(1, 2)
-        __user_type = {
-            1: "Tool_User",
-            2: "Tool_Owner",
-        }[__option]
-        return __user_type
+    def get_all_children(self):
+        __list = self.root.winfo_children()
+        for item in __list:
+            if item.winfo_children():
+                __list.extend(item.winfo_children())
+        return __list
 
     def get_buffered_user_errors(self):
         buffered_errors = tuple(self.buffered_user_errors)
@@ -334,4 +356,5 @@ class guiInterface:
 
 
 if __name__ == '__main__':
-    runInterface = guiInterface()
+    program = uiInterface()
+    program.run()
