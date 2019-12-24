@@ -51,13 +51,9 @@ class uiInterface:
         register_label_button.bind(
             '<Button-1>', self.goto_register_user_menu)
         register_label_button.grid(row=2, column=1, sticky="e")
-        # Button for submit
+        # Button for submittion
         submit_button = Button(self.root_frame, text="Log in", command=self.process_log_in).grid(
             column=2, padx=20, pady=20, ipadx=10, ipady=5)
-        # Error Message TODO better
-        # self.textvar = StringVar()
-        # self.error_message_output = Label(
-        #     self.root_frame, textvariable=self.textvar, fg="#ff0000").grid(column=1)
         self.root.mainloop()
 
     def process_log_in(self):
@@ -91,9 +87,6 @@ class uiInterface:
         self.Label_Frame_Reg = LabelFrame(  # TODO TODO TODO
             self.root_frame, text="Register User")
         self.Label_Frame_Reg.grid(ipadx=50, ipady=30, padx=5, pady=5)
-        # __inputPanel = PanedWindow(
-        #     self.Label_Frame_Reg, orient=HORIZONTAL)
-        # __inputPanel.grid(row=0, column=1, padx=50, pady=20)
 
         self.first_name_input = StringVar()
         self.surname_input = StringVar()
@@ -119,11 +112,10 @@ class uiInterface:
         self.generate_ui_label_and_entry(
             label_text_and_vars, self.Label_Frame_Reg)
 
-        self.date_of_birth_entry = DateEntry(
-            self.Label_Frame_Reg, width=22, background='darkblue', foreground='white', borderwidth=2)
-        self.date_of_birth_entry.grid(row=3, column=1, columnspan=2, sticky=W)
-        self.date_of_birth_entry.bind(
-            "<<DateEntrySelected>>", self.set_date_of_birth)
+        # Custom calendar input widget
+        self.birthday_date = StringVar()
+        self.generate_ui_date_entry(
+            self.Label_Frame_Reg, self.birthday_date, row=3, column=1, columnspan=2, sticky=W)
 
         self.user_type = IntVar()
         __radio_buttons_panel = PanedWindow(
@@ -161,6 +153,12 @@ class uiInterface:
             __label = Label(__widget, text=__line, fg="#ff0000")
             __label.grid(row=__index, column=1)
             self.outputed_errors_list.append(__label)
+
+    def generate_ui_date_entry(self, __widget, __var, **kw):
+        __date_entry = DateEntry(__widget, width=22, background='darkblue',
+                                 foreground='white', textvariable=__var, date_pattern='d/m/yy', borderwidth=2)
+        __date_entry.grid(kw)
+        return __date_entry
 
     def clear_errors(self):
         for __l in self.outputed_errors_list:
@@ -209,14 +207,14 @@ class uiInterface:
         self.root.mainloop()
 
     def process_register_new_user(self):  # TODO
+        self.clear_errors()
         __valid_email_address = self.get_valid_email_address()
         __password_hash = self.get_valid_hashed_password()
-        self.textvar.set("")
         self.user_account.register(
             UserClass.generate_unique_ID(),
             str(self.first_name_input.get()),
             str(self.surname_input.get()),
-            self.date_of_birth_input,
+            str(self.birthday_date.get()),
             int(self.phone_number_input.get()),
             str(self.home_address_input.get()),
             str(self.post_code_input.get()),
@@ -311,9 +309,6 @@ class uiInterface:
 
     ##### random method for Class functionality #####
 
-    def set_date_of_birth(self, event):
-        self.date_of_birth_input = self.date_of_birth_entry.get_date()
-
     def goto_register_user_menu(self, event):
         self.register_user_ui()
 
@@ -324,16 +319,17 @@ class uiInterface:
                 __hashed_password = UserClass.generate_hashed_password(
                     __password)
             else:
-                self.textvar.set("Please enter a password w/ 8 - 32 digits")
+                self.buffered_user_errors.append(
+                    "Please enter a password w/ 8 - 32 digits")
                 __hashed_password = None
         else:
-            self.textvar.set("ERROR - Passwords do not match")
+            self.buffered_user_errors.append("ERROR - Passwords do not match")
         return __hashed_password
 
     def get_valid_email_address(self):
         __email = self.email_input.get()
         if self.user_account.does_email_exist(__email):
-            self.textvar.set("ERROR - Email Already Exists")
+            self.buffered_user_errors.append("ERROR - Email Already Exists")
             __email = None
         return __email
 
