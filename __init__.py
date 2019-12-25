@@ -29,7 +29,7 @@ class uiInterface:
 
     def log_in_ui(self):
         self.setup_root_frame()
-        self.init_default_UI()  # this may not be needed here TODO
+        self.init_default_UI()
         self.root.title("Shared Power - Log in")
         self.add_menu_bar_1()
 
@@ -62,7 +62,7 @@ class uiInterface:
         __password = self.password_input.get()
 
         if not (self.user_account.does_email_exist(__email_address)):
-            self.buffered_user_errors.append("ERROR - Account not found")
+            self.buffered_user_errors.append("Account not found")
         else:
             self.clear_errors()
             if(self.user_account.check_password(__email_address, __password)):
@@ -75,8 +75,8 @@ class uiInterface:
                     self.buffered_user_errors.append(
                         "Database Error - Type of User Unknown")
             else:
-                self.buffered_user_errors.append("ERROR - Wrong Password")
-        self.generate_ui_output_errors(self.root_frame)
+                self.buffered_user_errors.append("Wrong Password")
+        self.generate_ui_output_errors(self.root_frame, starting_index=100)
 
     def register_user_ui(self):
         self.setup_root_frame()
@@ -84,9 +84,8 @@ class uiInterface:
         self.root.title("Shared Power - Register New User")
         self.add_menu_bar_2()
 
-        self.Label_Frame_Reg = LabelFrame(  # TODO TODO TODO
-            self.root_frame, text="Register User")
-        self.Label_Frame_Reg.grid(ipadx=50, ipady=30, padx=5, pady=5)
+        self.Label_Frame_Reg = self.add_label_frame(
+            self.root_frame, "Register User", ipadx=50, ipady=30, padx=5, pady=5)
 
         self.first_name_input = StringVar()
         self.surname_input = StringVar()
@@ -97,7 +96,7 @@ class uiInterface:
         self.password_input = StringVar()
         self.confirm_password_input = StringVar()
 
-        label_text_and_vars = [  # None = do not generate Entry, useful for different input types
+        label_text_and_vars = [  # None = do not generate Entry, useful for different input widgets
             ("First Name", self.first_name_input),
             ("Surname", self.surname_input),
             ("Phone Number", self.phone_number_input),
@@ -114,22 +113,82 @@ class uiInterface:
 
         # Custom calendar input widget
         self.birthday_date = StringVar()
-        self.generate_ui_date_entry(
+        self.add_date_entry(
             self.Label_Frame_Reg, self.birthday_date, row=3, column=1, columnspan=2, sticky=W)
 
-        self.user_type = IntVar()
-        __radio_buttons_panel = PanedWindow(
-            self.Label_Frame_Reg, orient=HORIZONTAL)
-        __radio_buttons_panel.grid(row=9, column=1, padx=10, pady=10)
-        Radiobutton(self.Label_Frame_Reg, text="Tool User", variable=self.user_type,
-                    value=1).grid(row=9, column=1, sticky=W)
-        Radiobutton(self.Label_Frame_Reg, text="Tool Owner", variable=self.user_type,
-                    value=2).grid(row=9, column=2, sticky=W)
+        self.add_two_radio_buttons_get_var(
+            self.Label_Frame_Reg, "Tool User", "Tool Owner", row=9, sticky=W)
 
         submit_button = Button(self.Label_Frame_Reg, text="Register", command=self.process_register_new_user).grid(
             column=2, ipadx=10, ipady=5)
 
         self.root.mainloop()
+
+    def process_register_new_user(self):  # TODO
+
+        __first_name = str(self.first_name_input.get())
+        __surname = str(self.surname_input.get())
+        __birthday_date = str(self.birthday_date.get())
+        __home_address = str(self.home_address_input.get())
+        __post_code = str(self.post_code_input.get())
+        __email = str(self.email_input.get())
+        __password = str(self.password_input.get())
+        __confirm_password = self.confirm_password_input.get()
+        __user_type_input = self.user_type_input.get()
+
+        if(__first_name == ""):
+            self.buffered_user_errors.append(
+                "Please Enter your First Name")
+        if(__surname == ""):
+            self.buffered_user_errors.append(
+                "Please Enter your Surname")
+        if self.user_account.does_email_exist(__email):
+            self.buffered_user_errors.append("Email Already Exists")
+        if (__email.find("@") == -1):
+            self.buffered_user_errors.append(
+                "Please Enter a Valid Email")
+        try:
+            __numberStr = self.phone_number_input.get()
+            if __numberStr == "":
+                self.buffered_user_errors.append(
+                    "Please Enter a Phone Number")
+            __phone_number = int(__numberStr)
+        except:
+            self.buffered_user_errors.append(
+                "Please Enter a Valid Phone Number")
+        if __birthday_date == datetime.datetime.now().strftime('%d/%m/%Y'):
+            self.buffered_user_errors.append(
+                "Please Enter a Valid Date")
+        if not (__password == __confirm_password):
+            self.buffered_user_errors.append("Passwords do not match")
+        if not 8 <= len(__password) <= 32:
+            self.buffered_user_errors.append(
+                "Please enter a password w/ 8 - 32 digits")
+        if (__user_type_input == 0):
+            self.buffered_user_errors.append(
+                "Please Select the type of account")
+        print(__user_type_input)
+        if(len(self.buffered_user_errors) == 0):
+            self.clear_errors()
+            __password_hash = UserClass.generate_hashed_password(__password)
+            self.user_account.register(
+                UserClass.generate_unique_ID(),
+                __first_name,
+                __surname,
+                __birthday_date,
+                __phone_number,
+                __home_address,
+                __post_code,
+                __email,
+                __password_hash,
+                0,                                           # Outstanding Balance
+                "Tool_User" if __user_type_input == 1 else "Tool_Owner"
+            )
+            self.log_in_ui()
+        else:
+            self.clear_errors()
+            self.generate_ui_output_errors(
+                self.Label_Frame_Reg, column=3, padx=50,  sticky=SE)
 
     def generate_ui_label_and_entry(self, __list, __widget, **kw):
         __label_padx = kw.pop('label_width', 20)
@@ -145,20 +204,41 @@ class uiInterface:
                                 textvariable=var)
                 __entry.grid(row=__index, column=1, columnspan=2, sticky=W)
 
-    def generate_ui_output_errors(self, __widget):
+    def generate_ui_output_errors(self, __widget, **kw):
         __buffered_errors = self.get_buffered_user_errors()
+        __start_on = kw.pop('starting_index', 0)
         for __line in __buffered_errors:
-            __index = __buffered_errors.index(__line) + 99
-            # the number 99 is to make sure that it always stays at the bottom
+            __index = __buffered_errors.index(__line) + __start_on
             __label = Label(__widget, text=__line, fg="#ff0000")
-            __label.grid(row=__index, column=1)
+            if len(kw) == 0:
+                __label.grid(row=__index, column=1)
+            else:
+                kw['row'] = __index
+                __label.grid(kw)
+
             self.outputed_errors_list.append(__label)
 
-    def generate_ui_date_entry(self, __widget, __var, **kw):
+    def add_date_entry(self, __widget, __var, **kw):
         __date_entry = DateEntry(__widget, width=22, background='darkblue',
-                                 foreground='white', textvariable=__var, date_pattern='d/m/yy', borderwidth=2)
+                                 foreground='white', textvariable=__var, date_pattern='d/m/yyyy', borderwidth=2)
         __date_entry.grid(kw)
         return __date_entry
+
+    def add_label_frame(self, __widget, __text, **kw):
+        __label_frame = LabelFrame(__widget, text=__text)
+        __label_frame.grid(kw)
+        return __label_frame
+
+    def add_two_radio_buttons_get_var(self, __widget, __textB1, __textB2, **kw):
+        self.user_type_input = IntVar()
+        __radio_button1 = Radiobutton(self.Label_Frame_Reg, text="Tool User", variable=self.user_type_input,
+                                      value=1)
+        __radio_button2 = Radiobutton(self.Label_Frame_Reg, text="Tool Owner", variable=self.user_type_input,
+                                      value=2)
+        kw['column'] = 1
+        __radio_button1.grid(kw)
+        kw['column'] = 2
+        __radio_button2.grid(kw)
 
     def clear_errors(self):
         for __l in self.outputed_errors_list:
@@ -205,27 +285,6 @@ class uiInterface:
             ipady=15, padx=20, pady=20, sticky=W)
 
         self.root.mainloop()
-
-    def process_register_new_user(self):  # TODO
-        self.clear_errors()
-        __valid_email_address = self.get_valid_email_address()
-        __password_hash = self.get_valid_hashed_password()
-        self.user_account.register(
-            UserClass.generate_unique_ID(),
-            str(self.first_name_input.get()),
-            str(self.surname_input.get()),
-            str(self.birthday_date.get()),
-            int(self.phone_number_input.get()),
-            str(self.home_address_input.get()),
-            str(self.post_code_input.get()),
-            __valid_email_address,
-            __password_hash,
-            0,                                           # Outstanding Balance
-            "Tool_User" if self.user_type.get() == 1 else "Tool_Owner"
-        )
-        self.generate_ui_output_errors(
-            self.Label_Frame_Reg)  # TODO needs more work
-        self.log_in_ui()
 
     def setup_root_frame(self):
         __list = self.get_all_children()
@@ -311,27 +370,6 @@ class uiInterface:
 
     def goto_register_user_menu(self, event):
         self.register_user_ui()
-
-    def get_valid_hashed_password(self):
-        __password = self.password_input.get()
-        if(__password == self.confirm_password_input.get()):
-            if 8 <= len(__password) <= 32:
-                __hashed_password = UserClass.generate_hashed_password(
-                    __password)
-            else:
-                self.buffered_user_errors.append(
-                    "Please enter a password w/ 8 - 32 digits")
-                __hashed_password = None
-        else:
-            self.buffered_user_errors.append("ERROR - Passwords do not match")
-        return __hashed_password
-
-    def get_valid_email_address(self):
-        __email = self.email_input.get()
-        if self.user_account.does_email_exist(__email):
-            self.buffered_user_errors.append("ERROR - Email Already Exists")
-            __email = None
-        return __email
 
     def get_unix_timestamp(self):
         return int(time.time())
