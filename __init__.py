@@ -70,7 +70,7 @@ class uiInterface:
                 if (__account_user_type == "Tool_User"):
                     self.tool_user_options_ui()
                 elif (__account_user_type == "Tool_Owner"):
-                    self.tool_user_options_ui()  # change to tool owner once that gets added
+                    self.tool_owner_options_ui()
                 else:
                     self.buffered_user_errors.append(
                         "Database Error - Type of User Unknown")
@@ -218,6 +218,23 @@ class uiInterface:
 
             self.outputed_errors_list.append(__label)
 
+    def generate_ui_functions_menu(self, __widget, __list, **kw):
+        __label_padx = kw.pop('label_width', 20)
+        __entry_width = kw.pop('entry_width', 25)
+        for __line in __list:
+            __text, function = __line
+
+            if function != None:
+                __button = Button(__widget, text=__text,
+                                  width=30, command=function)
+            else:
+                __button = Button(__widget, text=__text, width=30)
+
+            if len(kw) == 0:
+                __button.grid(ipady=15, padx=20, pady=20, sticky=W)
+            else:
+                __button.grid(kw)
+
     def add_date_entry(self, __widget, __var, **kw):
         __date_entry = DateEntry(__widget, width=22, background='darkblue',
                                  foreground='white', textvariable=__var, date_pattern='d/m/yyyy', borderwidth=2)
@@ -250,14 +267,18 @@ class uiInterface:
 
         self.add_menu_bar_3()
 
-        panel_1 = PanedWindow(orient=HORIZONTAL).grid()
+       # panel_1 = PanedWindow(orient=HORIZONTAL).grid()
         # TODO
-        Button(panel_1, text="Search for tools", width=30).grid(
-            ipady=15, padx=20, pady=20, sticky=W)
-        Button(panel_1, text="View current orders", width=30).grid(
-            ipady=15, padx=20, pady=20, sticky=W)
-        Button(panel_1, text="View Purchase History", width=30).grid(
-            ipady=15, padx=20, pady=20, sticky=W)
+
+        button_text_and_functions = [
+            ("Search for tools", None),
+            ("View current orders", None),
+            ("View next Invoice", None),
+            ("Log Out", self.log_in_ui),
+        ]
+
+        self.generate_ui_functions_menu(
+            self.root_frame, button_text_and_functions)
 
         self.root.mainloop()
 
@@ -267,22 +288,21 @@ class uiInterface:
 
         self.add_menu_bar_3()
 
-        panel_1 = PanedWindow(orient=HORIZONTAL).grid()
-        # TODO
-        Button(panel_1, text="Register tool", width=30).grid(
-            ipady=15, padx=20, pady=20, sticky=W)
-        Button(panel_1, text="View Listed Inventory", width=30).grid(
-            ipady=15, padx=20, pady=20, sticky=W)
-        Button(panel_1, text="Search for tools", width=30).grid(
-            ipady=15, padx=20, pady=20, sticky=W)
-        Button(panel_1, text="View current orders", width=30).grid(
-            ipady=15, padx=20, pady=20, sticky=W)
-        Button(panel_1, text="View Purchase History", width=30).grid(
-            ipady=15, padx=20, pady=20, sticky=W)
-        Button(panel_1, text="View next Invoice", width=30).grid(
-            ipady=15, padx=20, pady=20, sticky=W)
-        Button(panel_1, text="Log Out", width=30).grid(
-            ipady=15, padx=20, pady=20, sticky=W)
+        # panel_1 = PanedWindow(orient=HORIZONTAL).grid()
+        # # TODO
+
+        button_text_and_functions = [
+            ("Register tool", None),
+            ("View Listed Inventory", None),
+            ("Search for tools", None),
+            ("View current orders", None),
+            ("View Purchase History", None),
+            ("View next Invoice", None),
+            ("Log Out", self.log_in_ui),
+        ]
+
+        self.generate_ui_functions_menu(
+            self.root_frame, button_text_and_functions)
 
         self.root.mainloop()
 
