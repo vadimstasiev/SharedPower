@@ -40,11 +40,11 @@ class uiInterface:
         self.password_input = StringVar()
 
         label_text_and_vars = [
-            ("Email", self.email_input),
-            ("Password", self.password_input),
+            ("Email: ", self.email_input),
+            ("Password: type=pw", self.password_input),
         ]
         self.generate_ui_label_and_entry(
-            label_text_and_vars, __inputPanel, entry_width=40)
+            __inputPanel, label_text_and_vars, entry_width=40)
 
         register_label_button = Label(
             __inputPanel, text="Don't have an account? Click to Register", fg="#0400ff")
@@ -97,19 +97,19 @@ class uiInterface:
         self.confirm_password_input = StringVar()
 
         label_text_and_vars = [  # None = do not generate Entry, useful for different input widgets
-            ("First Name", self.first_name_input),
-            ("Surname", self.surname_input),
-            ("Phone Number", self.phone_number_input),
-            ("Date of Birth", None),
-            ("Post Code", self.post_code_input),
-            ("Home Address", self.home_address_input),
-            ("Email", self.email_input),
-            ("Password", self.password_input),
-            ("Confirm Password", self.confirm_password_input),
-            ("User Type", None)
+            ("First Name: ", self.first_name_input),
+            ("Surname: ", self.surname_input),
+            ("Phone Number: ", self.phone_number_input),
+            ("Date of Birth: ", None),
+            ("Post Code: ", self.post_code_input),
+            ("Home Address:", self.home_address_input),
+            ("Email: ", self.email_input),
+            ("Password: type=pw", self.password_input),
+            ("Confirm Password: type=pw", self.confirm_password_input),
+            ("User Type: ", None)
         ]
         self.generate_ui_label_and_entry(
-            label_text_and_vars, self.Label_Frame_Reg)
+            self.Label_Frame_Reg, label_text_and_vars)
 
         # Custom calendar input widget
         self.birthday_date = StringVar()
@@ -190,18 +190,63 @@ class uiInterface:
             self.generate_ui_output_errors(
                 self.Label_Frame_Reg, column=3, padx=50,  sticky=SE)
 
-    def generate_ui_label_and_entry(self, __list, __widget, **kw):
+    def register_tool_ui(self):
+        self.setup_root_frame()
+        self.init_default_UI()
+        self.root.title("Shared Power - Register New Tool")
+        self.add_menu_bar_3()
+
+        self.Label_Frame_Reg = self.add_label_frame(
+            self.root_frame, "Register Tool", ipadx=50, ipady=30, padx=5, pady=5)
+
+        self.tool_name = StringVar()
+        self.half_day_rate = StringVar()
+        self.full_day_rate = StringVar()
+        self.post_code_input = StringVar()
+        self.home_address_input = StringVar()
+
+        label_text_and_vars = [  # None = do not generate Entry, useful for different input widgets
+            ("Tool Name: ", self.tool_name),
+            ("Description ", self.half_day_rate),
+            ("Half day rate: ", self.half_day_rate),
+            ("Full Day Rate: ", self.full_day_rate),
+            ("Availablity start date: ", None),
+            ("Availablity end date: ", None),
+
+        ]
+        self.generate_ui_label_and_entry(
+            self.Label_Frame_Reg, label_text_and_vars)
+
+        # Custom calendar input widget
+        self.birthday_date = StringVar()
+        self.add_date_entry(
+            self.Label_Frame_Reg, self.birthday_date, row=3, column=1, columnspan=2, sticky=W)
+
+        self.add_two_radio_buttons_get_var(
+            self.Label_Frame_Reg, "Tool User", "Tool Owner", row=9, sticky=W)
+
+        submit_button = Button(self.Label_Frame_Reg, text="Register", command=self.process_register_new_user).grid(
+            column=2, ipadx=10, ipady=5)
+
+        self.root.mainloop()
+
+    def generate_ui_label_and_entry(self, __widget, __list, **kw):
         __label_padx = kw.pop('label_width', 20)
         __entry_width = kw.pop('entry_width', 25)
         for __line in __list:
             label_display, var = __line
             __index = __list.index(__line)
-            __label = Label(__widget, text=label_display,
+            __text = label_display.strip("type=pw")
+            __label = Label(__widget, text=__text,
                             padx=__label_padx, pady=3)
             __label.grid(row=__index, sticky=W)
             if var != None:
-                __entry = Entry(__widget, width=__entry_width,
-                                textvariable=var)
+                if(__text == label_display):
+                    __entry = Entry(
+                        __widget, width=__entry_width, textvariable=var)
+                else:
+                    __entry = Entry(
+                        __widget, width=__entry_width, show="*", textvariable=var)
                 __entry.grid(row=__index, column=1, columnspan=2, sticky=W)
 
     def generate_ui_output_errors(self, __widget, **kw):
@@ -292,7 +337,7 @@ class uiInterface:
         # # TODO
 
         button_text_and_functions = [
-            ("Register tool", None),
+            ("Register tool", self.register_tool_ui),
             ("View Listed Inventory", None),
             ("Search for tools", None),
             ("View current orders", None),
@@ -365,18 +410,6 @@ class uiInterface:
 
     def menu_view_next_invoice(self):
         pass  # TODO
-
-    def register_tool(self):  # TODO
-        # new_tool
-        self.user_account.register_tool(
-            UserClass.generate_unique_ID(),
-            input("Please enter the item name: "),
-            self.get_valid_price("Please enter the half-day fee: "),
-            self.get_valid_price("Please enter the full-day fee: "),
-            input("Please enter the tool description: "),
-            input("Please enter the availability of the tool: "),
-        )
-        self.menu_tool_owner_account()
 
     def view_own_tool_inventory(self):
         pass  # TODO
