@@ -19,7 +19,7 @@ from Classes.UserAccounts import UserClass
 
 class uiInterface:
     def __init__(self):
-        self.root = Tk()
+        self.UI_root = Tk()
         self.buffered_user_errors = []
         self.outputed_errors_list = []
         self.user_account = UserClass()
@@ -31,10 +31,10 @@ class uiInterface:
     def log_in_ui(self):
         self.setup_root_frame()
         self.init_default_UI()
-        self.root.title("Shared Power - Log in")
+        self.UI_root.title("Shared Power - Log in")
         self.add_menu_bar_1()
 
-        __inputPanel = PanedWindow(self.root_frame, orient=HORIZONTAL)
+        __inputPanel = PanedWindow(self.UI_root_frame, orient=HORIZONTAL)
         __inputPanel.grid(row=0, column=1, padx=50, pady=20)
 
         self.email_TKentry = StringVar()
@@ -53,9 +53,9 @@ class uiInterface:
             '<Button-1>', self.goto_register_user_menu)
         register_label_button.grid(row=2, column=1, sticky="e")
         # Button for submittion
-        submit_button = Button(self.root_frame, text="Log in", command=self.process_log_in).grid(
+        submit_button = Button(self.UI_root_frame, text="Log in", command=self.process_log_in).grid(
             column=2, padx=20, pady=20, ipadx=10, ipady=5)
-        self.root.mainloop()
+        self.UI_root.mainloop()
 
     def process_log_in(self):
         self.clear_errors()
@@ -76,16 +76,16 @@ class uiInterface:
                         "Database Error - Type of User Unknown")
             else:
                 self.buffered_user_errors.append("Wrong Password")
-        self.generate_ui_output_errors(self.root_frame, starting_index=100)
+        self.generate_ui_output_errors(self.UI_root_frame, starting_index=100)
 
     def register_user_ui(self):
         self.setup_root_frame()
         self.init_default_UI()
-        self.root.title("Shared Power - Register New User")
+        self.UI_root.title("Shared Power - Register New User")
         self.add_menu_bar_2()
 
         self.Label_Frame_Reg = self.add_label_frame(
-            self.root_frame, "Register User", ipadx=50, ipady=30, padx=5, pady=5)
+            self.UI_root_frame, "Register User", ipadx=50, ipady=30, padx=5, pady=5)
 
         self.first_name_TKentry = StringVar()
         self.surname_TKentry = StringVar()
@@ -122,7 +122,7 @@ class uiInterface:
         submit_button = Button(self.Label_Frame_Reg, text="Register", command=self.process_register_new_user)
         submit_button.grid(column=2, ipadx=10, ipady=5)
 
-        self.root.mainloop()
+        self.UI_root.mainloop()
 
     def process_register_new_user(self):
         self.clear_errors()
@@ -189,11 +189,11 @@ class uiInterface:
     def register_tool_ui(self):
         self.setup_root_frame()
         self.init_default_UI()
-        self.root.title("Shared Power - Register New Tool")
+        self.UI_root.title("Shared Power - Register New Tool")
         self.add_menu_bar_4()
 
         self.Label_Frame_Reg = self.add_label_frame(
-            self.root_frame, "Register Tool", ipadx=50, ipady=30, padx=5, pady=5)
+            self.UI_root_frame, "Register Tool", ipadx=50, ipady=30, padx=5, pady=5)
 
         self.tool_name = StringVar()
         self.half_day_rate = IntVar()
@@ -217,31 +217,30 @@ class uiInterface:
         self.description_text_box.grid(row=1, column=1)
 
         # Custom calendar input widget
-        self.availability_start_date = StringVar()
+        self.availability_start_date_StrVar = StringVar()
         self.add_date_entry(
-            self.Label_Frame_Reg, self.availability_start_date, row=4, column=1, columnspan=2, sticky=W)
-        self.availability_end_date = StringVar()
+            self.Label_Frame_Reg, self.availability_start_date_StrVar, row=4, column=1, columnspan=2, sticky=W)
+        self.availability_end_date_StrVar = StringVar()
         self.add_date_entry(
-            self.Label_Frame_Reg, self.availability_end_date, row=5, column=1, columnspan=2, sticky=W)
+            self.Label_Frame_Reg, self.availability_end_date_StrVar, row=5, column=1, columnspan=2, sticky=W)
 
         submit_button = Button(self.Label_Frame_Reg, text="Register", command=self.process_register_new_tool).grid(
             column=2, ipadx=10, ipady=5)
 
-        self.root.mainloop()
+        self.UI_root.mainloop()
 
     def process_register_new_tool(self):  # TODO TODO TODO
         self.validate_register_tool_input()
 
         if(len(self.buffered_user_errors) == 0):
             self.clear_errors()
-            self.reg_T_availability = self.reg_T_availability_start_date + self.reg_T_availability_end_date
             self.user_account.register_tool(
                 UserClass.generate_unique_ID(),
                 self.reg_T_tool_name,
                 self.reg_T_half_day_rate_int,
                 self.reg_T_full_day_rate_int,
                 self.reg_T_description,
-                self.reg_T_availability
+                self.get_packed_availability_dates()
             )
             self.current_menu()
         else:
@@ -254,8 +253,9 @@ class uiInterface:
         self.reg_T_description = str(self.description_text_box.get("1.0", END))
         self.reg_T_half_day_rate = str(self.half_day_rate.get())
         self.reg_T_full_day_rate = str(self.full_day_rate.get())
-        self.reg_T_availability_start_date = str(self.availability_start_date.get())
-        self.reg_T_availability_end_date = str(self.availability_end_date.get())
+        self.reg_T_availability_list = []
+        self.reg_T_availability_list.append(str(self.availability_start_date_StrVar.get()))
+        self.reg_T_availability_list.append(str(self.availability_end_date_StrVar.get()))
 
         if(self.reg_T_tool_name == ""):
             self.buffered_user_errors.append(
@@ -284,6 +284,17 @@ class uiInterface:
         # if self.reg_T_availability_start_date == datetime.datetime.now().strftime('%d/%m/%Y'):
         #     self.buffered_user_errors.append(
         #         "Please Enter a Valid Date")
+
+    def get_packed_availability_dates(self):
+        __list = self.reg_T_availability_list
+        __reg_T_availability_str_pack = __list[0]
+        for __date in __list:
+            __reg_T_availability_str_pack += '#' + __date
+        return __reg_T_availability_str_pack
+
+    def get_unpacked_dates(self, __dates_str_packed: str):
+        __list = __dates_str_packed.split('#')
+        return __list
 
     def generate_ui_label_and_entry(self, __widget, __list, **kw):
         __label_padx = kw.pop('label_width', 20)
@@ -378,7 +389,7 @@ class uiInterface:
 
     def tool_user_options_ui(self):
         self.setup_root_frame()
-        self.root.resizable(width=False, height=False)
+        self.UI_root.resizable(width=False, height=False)
 
         self.current_menu = self.tool_user_options_ui
 
@@ -392,13 +403,13 @@ class uiInterface:
         ]
 
         self.generate_ui_functions_menu(
-            self.root_frame, button_text_and_functions)
+            self.UI_root_frame, button_text_and_functions)
 
-        self.root.mainloop()
+        self.UI_root.mainloop()
 
     def tool_owner_options_ui(self):
         self.setup_root_frame()
-        self.root.resizable(width=False, height=False)
+        self.UI_root.resizable(width=False, height=False)
 
         self.current_menu = self.tool_owner_options_ui
 
@@ -415,54 +426,54 @@ class uiInterface:
         ]
 
         self.generate_ui_functions_menu(
-            self.root_frame, button_text_and_functions)
+            self.UI_root_frame, button_text_and_functions)
 
-        self.root.mainloop()
+        self.UI_root.mainloop()
 
     def setup_root_frame(self):
         __list = self.get_all_children()
         for __child in __list:
             __child.destroy()
-        self.root_frame = Frame(height=2, bd=1, relief=SUNKEN)
-        self.root_frame.grid()
+        self.UI_root_frame = Frame(height=2, bd=1, relief=SUNKEN)
+        self.UI_root_frame.grid()
 
     def init_default_UI(self):
-        self.root.title("Shared Power")
-        self.root.resizable(width=False, height=False)
+        self.UI_root.title("Shared Power")
+        self.UI_root.resizable(width=False, height=False)
 
     def add_menu_bar_1(self):   # used for Login Screen
-        self.menubar = Menu(self.root)
+        self.menubar = Menu(self.UI_root)
         __submenu = Menu(self.menubar, tearoff=0)
         __submenu.add_command(label="Contact Admin",
                               command=self.contact_admin)
         self.menubar.add_cascade(label="Forgot Password", menu=__submenu)
         self.menubar.add_command(label="Quit", command=self.quit)
-        self.root.config(menu=self.menubar)
+        self.UI_root.config(menu=self.menubar)
 
     def add_menu_bar_2(self):   # used for Register Screen
-        self.menubar = Menu(self.root)
+        self.menubar = Menu(self.UI_root)
         __submenu = Menu(self.menubar, tearoff=0)
         __submenu.add_command(label="Go Back", command=self.log_in_ui)
         __submenu.add_command(label="Quit", command=self.quit)
         self.menubar.add_cascade(label="Options", menu=__submenu)
-        self.root.config(menu=self.menubar)
+        self.UI_root.config(menu=self.menubar)
 
     def add_menu_bar_3(self):   # used for the tool users/owners UI
-        self.menubar = Menu(self.root)
+        self.menubar = Menu(self.UI_root)
         __submenu = Menu(self.menubar, tearoff=0)
         __submenu.add_command(label="Log Out", command=self.log_in_ui)
         __submenu.add_command(label="Quit", command=self.quit)
         self.menubar.add_cascade(label="Options", menu=__submenu)
-        self.root.config(menu=self.menubar)
+        self.UI_root.config(menu=self.menubar)
 
     def add_menu_bar_4(self):   # used for the sub pages of the tool users/owners UI
         __user_type = self.user_account.get_user_type()
-        self.menubar = Menu(self.root)
+        self.menubar = Menu(self.UI_root)
         __submenu = Menu(self.menubar, tearoff=0)
         __submenu.add_command(label="Go Back", command=self.run_current_menu)
         __submenu.add_command(label="Quit", command=self.quit)
         self.menubar.add_cascade(label="Options", menu=__submenu)
-        self.root.config(menu=self.menubar)
+        self.UI_root.config(menu=self.menubar)
 
     def contact_admin(self):
         print("Contact Admin")
@@ -504,8 +515,8 @@ class uiInterface:
         # get own tool inventory
 
     def quit(self):
-        self.root.destroy()
-        self.root.quit()
+        self.UI_root.destroy()
+        self.UI_root.quit()
 
     ##### random method for Class functionality #####
 
@@ -519,7 +530,7 @@ class uiInterface:
         return int(time.time())
 
     def get_all_children(self):
-        __list = self.root.winfo_children()
+        __list = self.UI_root.winfo_children()
         for item in __list:
             if item.winfo_children():
                 __list.extend(item.winfo_children())

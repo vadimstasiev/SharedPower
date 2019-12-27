@@ -25,6 +25,21 @@ class E_User_Details_Table(enum.Enum):
     Type_of_User = 10
 
 
+User_Details_Table_Index = [
+    "Unique_User_ID",
+    "First_Name",
+    "Surname",
+    "Date_of_Birth",
+    "Phone_Number",
+    "Home_Address",
+    "Post_Code",
+    "Email_Address",
+    "Password_Hash",
+    "Outstanding_Balance",
+    "Type_of_User",
+]
+
+
 class UserClass():
 
     def __init__(self):
@@ -88,7 +103,7 @@ class UserClass():
         tool_info_and_owner = list(argv)
         tool_info_and_owner.append("TODO_Item_Process_State")
         tool_info_and_owner.append(
-            self.fetched_user_details[E_User_Details_Table.Unique_User_ID.value])
+            self.fetched_user_details[User_Details_Table_Index.index("Unique_User_ID")])
         self.dbInterface.data_entry(tuple(tool_info_and_owner))
 
     def does_email_exist(self, __user_email: str):
@@ -111,7 +126,7 @@ class UserClass():
     def fetch_user_listed_inventory(self):
         self.dbInterface.select_table(self.inventory_table)
         __list_results = self.dbInterface.fetch_lines_from_database(
-            f"User_ID = {self.fetched_user_details[E_User_Details_Table.Unique_User_ID.value]}")
+            f"User_ID = {self.fetched_user_details[User_Details_Table_Index.index('Unique_User_ID')]}")
         return __list_results
 
     @staticmethod
