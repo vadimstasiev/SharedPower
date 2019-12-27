@@ -65,7 +65,6 @@ class uiInterface:
         if not (self.user_account.does_email_exist(__email_address)):
             self.buffered_user_errors.append("Account not found")
         else:
-            self.clear_errors()
             if(self.user_account.check_password(__email_address, __password)):
                 __account_user_type = self.user_account.get_user_type()
                 if (__account_user_type == "Tool_User"):
@@ -126,7 +125,8 @@ class uiInterface:
         self.root.mainloop()
 
     def process_register_new_user(self):
-
+        self.clear_errors()
+        self.validate_register_user_input()
         __first_name = str(self.first_name_input.get())
         __surname = str(self.surname_input.get())
         __birthday_date = str(self.birthday_date.get())
@@ -137,39 +137,7 @@ class uiInterface:
         __confirm_password = self.confirm_password_input.get()
         __user_type_input = self.user_type_input.get()
 
-        if(__first_name == ""):
-            self.buffered_user_errors.append(
-                "Please Enter your First Name")
-        if(__surname == ""):
-            self.buffered_user_errors.append(
-                "Please Enter your Surname")
-        if self.user_account.does_email_exist(__email):
-            self.buffered_user_errors.append("Email Already Exists")
-        if (__email.find("@") == -1):
-            self.buffered_user_errors.append(
-                "Please Enter a Valid Email")
-        try:
-            __numberStr = self.phone_number_input.get()
-            if __numberStr == "":
-                self.buffered_user_errors.append(
-                    "Please Enter a Phone Number")
-            __phone_number = int(__numberStr)
-        except:
-            self.buffered_user_errors.append(
-                "Please Enter a Valid Phone Number")
-        if __birthday_date == datetime.datetime.now().strftime('%d/%m/%Y'):
-            self.buffered_user_errors.append(
-                "Please Enter a Valid Date")
-        if not (__password == __confirm_password):
-            self.buffered_user_errors.append("Passwords do not match")
-        if not 8 <= len(__password) <= 32:
-            self.buffered_user_errors.append(
-                "Please enter a password w/ 8 - 32 digits")
-        if (__user_type_input == 0):
-            self.buffered_user_errors.append(
-                "Please Select the type of account")
         if(len(self.buffered_user_errors) == 0):
-            self.clear_errors()
             __password_hash = UserClass.generate_hashed_password(__password)
             self.user_account.register(
                 UserClass.generate_unique_ID(),
@@ -186,9 +154,46 @@ class uiInterface:
             )
             self.log_in_ui()
         else:
-            self.clear_errors()
             self.generate_ui_output_errors(
                 self.Label_Frame_Reg, column=3, padx=50,  sticky=SE)
+    def validate_register_user_input(self):
+        __first_name = str(self.first_name_input.get())
+        __surname = str(self.surname_input.get())
+        __birthday_date = str(self.birthday_date.get())
+        __home_address = str(self.home_address_input.get())
+        __post_code = str(self.post_code_input.get())
+        __email = str(self.email_input.get())
+        __password = str(self.password_input.get())
+        __confirm_password = self.confirm_password_input.get()
+        __user_type_input = self.user_type_input.get()
+
+        if(__first_name == ""):
+            self.buffered_user_errors.append("Please enter your first name")
+        if(__surname == ""):
+            self.buffered_user_errors.append("Please enter your surname")
+        if self.user_account.does_email_exist(__email):
+            self.buffered_user_errors.append("Email already exists")
+        if (__email.find("@") == -1):
+            self.buffered_user_errors.append("Please enter a valid email")
+        try:
+            __numberStr = self.phone_number_input.get()
+            if __numberStr == "":
+                self.buffered_user_errors.append("Please enter a phone number")
+            __phone_number = int(__numberStr)
+        except:
+            self.buffered_user_errors.append("Please enter a valid phone number")
+        if __birthday_date == datetime.datetime.now().strftime('%d/%m/%Y'):
+            self.buffered_user_errors.append("Please enter a valid date")
+        if(__post_code == ""):
+            self.buffered_user_errors.append("Please enter your postcode")
+        if(__home_address == ""):
+            self.buffered_user_errors.append("Please enter your home address")
+        if not (__password == __confirm_password):
+            self.buffered_user_errors.append("Passwords do not match")
+        if not 8 <= len(__password) <= 32:
+            self.buffered_user_errors.append("Please enter a password w/ 8 - 32 digits")
+        if (__user_type_input == 0):
+            self.buffered_user_errors.append("Please select the type of account")
 
     def register_tool_ui(self):
         self.setup_root_frame()
@@ -405,7 +410,7 @@ class uiInterface:
 
         button_text_and_functions = [
             ("Register tool", self.register_tool_ui),
-            ("View Listed Inventory", None),
+            ("View Listed Inventory", self.menu_view_listed_inventory),
             ("Search for tools", None),
             ("View current orders", None),
             ("View Purchase History", None),
@@ -475,8 +480,19 @@ class uiInterface:
     def menu_view_listed_inventory(self):  # TODO
         print("#"*100)
         __list_results = self.user_account.fetch_user_listed_inventory()
-        [print(row) for row in __list_results]
+        [print(row) for row in __list_results] # use something like this to generate all tool list
+        # add drag bar if list > 4 or 5 items
         print("#"*100)
+
+    # def display_list_tool_gui(self, **kw):
+        # take kw
+        # e.g. (2.355875649467236e+36, 'tool_owner_tool', 3000, 3000, 'new drill \\n', '27/12/201924/12/2020', 'TODO_Item_Process_State', 1.6201268956441832e+38)
+        # labelframe, display Tool Name, half day rate and full day rate and button to bring up a separate individual page
+        # change make calendar show events, put dates in an array and save on db
+        # for loop to go through all dates?
+        # load array from db and and select dates on calendar
+
+        # load photo from db
 
     def menu_view_current_orders(self):
         pass  # TODO

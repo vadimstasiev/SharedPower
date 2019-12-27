@@ -96,6 +96,7 @@ class UserClass():
 
     def update_fetched_user_details(self, __user_email: str):
         try:
+            self.dbInterface.select_table(self.user_details_table)
             __list_line_results = self.dbInterface.fetch_lines_from_database(
                 f"Email_Address = '{__user_email}'")
             self.fetched_user_details = __list_line_results[0]
