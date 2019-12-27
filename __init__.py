@@ -37,12 +37,12 @@ class uiInterface:
         __inputPanel = PanedWindow(self.root_frame, orient=HORIZONTAL)
         __inputPanel.grid(row=0, column=1, padx=50, pady=20)
 
-        self.email_input = StringVar()
-        self.password_input = StringVar()
+        self.email_TKentry = StringVar()
+        self.password_TKentry = StringVar()
 
         label_text_and_vars = [
-            ("Email: ", self.email_input),
-            ("Password: #{type=pw", self.password_input),
+            ("Email: ", self.email_TKentry),
+            ("Password: #{type=pw", self.password_TKentry),
         ]
         self.generate_ui_label_and_entry(
             __inputPanel, label_text_and_vars, entry_width=40)
@@ -59,8 +59,8 @@ class uiInterface:
 
     def process_log_in(self):
         self.clear_errors()
-        __email_address = self.email_input.get()
-        __password = self.password_input.get()
+        __email_address = self.email_TKentry.get()
+        __password = self.password_TKentry.get()
 
         if not (self.user_account.does_email_exist(__email_address)):
             self.buffered_user_errors.append("Account not found")
@@ -87,112 +87,103 @@ class uiInterface:
         self.Label_Frame_Reg = self.add_label_frame(
             self.root_frame, "Register User", ipadx=50, ipady=30, padx=5, pady=5)
 
-        self.first_name_input = StringVar()
-        self.surname_input = StringVar()
-        self.phone_number_input = StringVar()
-        self.post_code_input = StringVar()
-        self.home_address_input = StringVar()
-        self.email_input = StringVar()
-        self.password_input = StringVar()
-        self.confirm_password_input = StringVar()
+        self.first_name_TKentry = StringVar()
+        self.surname_TKentry = StringVar()
+        self.phone_number_TKentry = StringVar()
+        self.post_code_TKentry = StringVar()
+        self.home_address_TKentry = StringVar()
+        self.email_TKentry = StringVar()
+        self.password_TKentry = StringVar()
+        self.confirm_password_TKentry = StringVar()
 
         label_text_and_vars = [  # None = do not generate Entry, useful for different input widgets
-            ("First Name: ", self.first_name_input),
-            ("Surname: ", self.surname_input),
-            ("Phone Number: ", self.phone_number_input),
+            ("First Name: ", self.first_name_TKentry),
+            ("Surname: ", self.surname_TKentry),
+            ("Phone Number: ", self.phone_number_TKentry),
             ("Date of Birth: ", None),
-            ("Post Code: ", self.post_code_input),
-            ("Home Address:", self.home_address_input),
-            ("Email: ", self.email_input),
-            ("Password: #{type=pw", self.password_input),
-            ("Confirm Password: #{type=pw", self.confirm_password_input),
+            ("Post Code: ", self.post_code_TKentry),
+            ("Home Address:", self.home_address_TKentry),
+            ("Email: ", self.email_TKentry),
+            ("Password: #{type=pw", self.password_TKentry),
+            ("Confirm Password: #{type=pw", self.confirm_password_TKentry),
             ("User Type: ", None)
         ]
         self.generate_ui_label_and_entry(
             self.Label_Frame_Reg, label_text_and_vars)
 
         # Custom calendar input widget
-        self.birthday_date = StringVar()
+        self.birthday_dateStrVar = StringVar()
         self.add_date_entry(
-            self.Label_Frame_Reg, self.birthday_date, row=3, column=1, columnspan=2, sticky=W)
+            self.Label_Frame_Reg, self.birthday_dateStrVar, row=3, column=1, columnspan=2, sticky=W)
 
-        self.add_two_radio_buttons_get_var(
+        self.user_type_IntVar = self.add_two_radio_buttons_get_var(
             self.Label_Frame_Reg, "Tool User", "Tool Owner", row=9, sticky=W)
 
-        submit_button = Button(self.Label_Frame_Reg, text="Register", command=self.process_register_new_user).grid(
-            column=2, ipadx=10, ipady=5)
+        submit_button = Button(self.Label_Frame_Reg, text="Register", command=self.process_register_new_user)
+        submit_button.grid(column=2, ipadx=10, ipady=5)
 
         self.root.mainloop()
 
     def process_register_new_user(self):
         self.clear_errors()
         self.validate_register_user_input()
-        __first_name = str(self.first_name_input.get())
-        __surname = str(self.surname_input.get())
-        __birthday_date = str(self.birthday_date.get())
-        __home_address = str(self.home_address_input.get())
-        __post_code = str(self.post_code_input.get())
-        __email = str(self.email_input.get())
-        __password = str(self.password_input.get())
-        __confirm_password = self.confirm_password_input.get()
-        __user_type_input = self.user_type_input.get()
 
         if(len(self.buffered_user_errors) == 0):
-            __password_hash = UserClass.generate_hashed_password(__password)
+            self.reg_U_password_hash = UserClass.generate_hashed_password(self.reg_U_password)
             self.user_account.register(
                 UserClass.generate_unique_ID(),
-                __first_name,
-                __surname,
-                __birthday_date,
-                __phone_number,
-                __home_address,
-                __post_code,
-                __email,
-                __password_hash,
+                self.reg_U_first_name,
+                self.reg_U_surname,
+                self.reg_U_birthday_date,
+                self.reg_U_phone_number,
+                self.reg_U_home_address,
+                self.reg_U_post_code,
+                self.reg_U_email,
+                self.reg_U_password_hash,
                 0,                                           # Outstanding Balance
-                "Tool_User" if __user_type_input == 1 else "Tool_Owner"
+                "Tool_User" if self.reg_U_user_type == 1 else "Tool_Owner"
             )
             self.log_in_ui()
         else:
             self.generate_ui_output_errors(
                 self.Label_Frame_Reg, column=3, padx=50,  sticky=SE)
     def validate_register_user_input(self):
-        __first_name = str(self.first_name_input.get())
-        __surname = str(self.surname_input.get())
-        __birthday_date = str(self.birthday_date.get())
-        __home_address = str(self.home_address_input.get())
-        __post_code = str(self.post_code_input.get())
-        __email = str(self.email_input.get())
-        __password = str(self.password_input.get())
-        __confirm_password = self.confirm_password_input.get()
-        __user_type_input = self.user_type_input.get()
+        self.reg_U_first_name = str(self.first_name_TKentry.get())
+        self.reg_U_surname = str(self.surname_TKentry.get())
+        self.reg_U_birthday_date = str(self.birthday_dateStrVar.get())
+        self.reg_U_home_address = str(self.home_address_TKentry.get())
+        self.reg_U_post_code = str(self.post_code_TKentry.get())
+        self.reg_U_email = str(self.email_TKentry.get())
+        self.reg_U_password = str(self.password_TKentry.get())
+        self.reg_U_confirm_password = self.confirm_password_TKentry.get()
+        self.reg_U_user_type = int(self.user_type_IntVar.get())
 
-        if(__first_name == ""):
+        if(self.reg_U_first_name == ""):
             self.buffered_user_errors.append("Please enter your first name")
-        if(__surname == ""):
+        if(self.reg_U_surname == ""):
             self.buffered_user_errors.append("Please enter your surname")
-        if self.user_account.does_email_exist(__email):
+        if self.user_account.does_email_exist(self.reg_U_email):
             self.buffered_user_errors.append("Email already exists")
-        if (__email.find("@") == -1):
+        if (self.reg_U_email.find("@") == -1):
             self.buffered_user_errors.append("Please enter a valid email")
         try:
-            __numberStr = self.phone_number_input.get()
+            __numberStr = self.phone_number_TKentry.get()
             if __numberStr == "":
                 self.buffered_user_errors.append("Please enter a phone number")
-            __phone_number = int(__numberStr)
+            self.reg_U_phone_number = int(__numberStr)
         except:
             self.buffered_user_errors.append("Please enter a valid phone number")
-        if __birthday_date == datetime.datetime.now().strftime('%d/%m/%Y'):
+        if self.reg_U_birthday_date == datetime.datetime.now().strftime('%d/%m/%Y'):
             self.buffered_user_errors.append("Please enter a valid date")
-        if(__post_code == ""):
+        if(self.reg_U_post_code == ""):
             self.buffered_user_errors.append("Please enter your postcode")
-        if(__home_address == ""):
+        if(self.reg_U_home_address == ""):
             self.buffered_user_errors.append("Please enter your home address")
-        if not (__password == __confirm_password):
+        if not (self.reg_U_password == self.reg_U_confirm_password):
             self.buffered_user_errors.append("Passwords do not match")
-        if not 8 <= len(__password) <= 32:
+        if not 8 <= len(self.reg_U_password) <= 32:
             self.buffered_user_errors.append("Please enter a password w/ 8 - 32 digits")
-        if (__user_type_input == 0):
+        if (self.reg_U_user_type == 0):
             self.buffered_user_errors.append("Please select the type of account")
 
     def register_tool_ui(self):
@@ -207,8 +198,8 @@ class uiInterface:
         self.tool_name = StringVar()
         self.half_day_rate = IntVar()
         self.full_day_rate = IntVar()
-        self.post_code_input = StringVar()
-        self.home_address_input = StringVar()
+        self.post_code_TKentry = StringVar()
+        self.home_address_TKentry = StringVar()
 
         label_text_and_vars = [  # None = do not generate Entry, useful for different input widgets
             ("Tool Name: ", self.tool_name),
@@ -239,56 +230,60 @@ class uiInterface:
         self.root.mainloop()
 
     def process_register_new_tool(self):  # TODO TODO TODO
-        __tool_name = str(self.tool_name.get())
-        __description = str(self.description_text_box.get("1.0", END))
-        __half_day_rate = str(self.half_day_rate.get())
-        __full_day_rate = str(self.full_day_rate.get())
-        __availability_start_date = str(self.availability_start_date.get())
-        __availability_end_date = str(self.availability_end_date.get())
+        self.validate_register_tool_input()
 
-        if(__tool_name == ""):
-            self.buffered_user_errors.append(
-                "Please enter the tool name")
-        if(__description == ""):
-            self.buffered_user_errors.append(
-                "Please enter a description")
-
-        if __half_day_rate == 0:
-            self.buffered_user_errors.append(
-                "Please enter the half day rate")
-        try:
-            __half_day_rate_int = int(float(__half_day_rate)*100)
-        except:
-            self.buffered_user_errors.append(
-                "Please enter a valid price for the half day rate")
-
-        if __full_day_rate == 0:
-            self.buffered_user_errors.append(
-                "Please enter the full day rate")
-        try:
-            __full_day_rate_int = int(float(__half_day_rate)*100)
-        except:
-            self.buffered_user_errors.append(
-                "Please enter a valid price for the full day rate")
-        # if __availability_start_date == datetime.datetime.now().strftime('%d/%m/%Y'):
-        #     self.buffered_user_errors.append(
-        #         "Please Enter a Valid Date")
         if(len(self.buffered_user_errors) == 0):
             self.clear_errors()
-            __availability = __availability_start_date + __availability_end_date
+            self.reg_T_availability = self.reg_T_availability_start_date + self.reg_T_availability_end_date
             self.user_account.register_tool(
                 UserClass.generate_unique_ID(),
-                __tool_name,
-                __half_day_rate_int,
-                __full_day_rate_int,
-                __description,
-                __availability
+                self.reg_T_tool_name,
+                self.reg_T_half_day_rate_int,
+                self.reg_T_full_day_rate_int,
+                self.reg_T_description,
+                self.reg_T_availability
             )
             self.current_menu()
         else:
             self.clear_errors()
             self.generate_ui_output_errors(
                 self.Label_Frame_Reg, column=0, starting_index=100, padx=50,  sticky=SE)
+
+    def validate_register_tool_input(self):
+        self.reg_T_tool_name = str(self.tool_name.get())
+        self.reg_T_description = str(self.description_text_box.get("1.0", END))
+        self.reg_T_half_day_rate = str(self.half_day_rate.get())
+        self.reg_T_full_day_rate = str(self.full_day_rate.get())
+        self.reg_T_availability_start_date = str(self.availability_start_date.get())
+        self.reg_T_availability_end_date = str(self.availability_end_date.get())
+
+        if(self.reg_T_tool_name == ""):
+            self.buffered_user_errors.append(
+                "Please enter the tool name")
+        if(self.reg_T_description == ""):
+            self.buffered_user_errors.append(
+                "Please enter a description")
+
+        if self.reg_T_half_day_rate == 0:
+            self.buffered_user_errors.append(
+                "Please enter the half day rate")
+        try:
+            self.reg_T_half_day_rate_int = int(float(self.reg_T_half_day_rate)*100)
+        except:
+            self.buffered_user_errors.append(
+                "Please enter a valid price for the half day rate")
+
+        if self.reg_T_full_day_rate == 0:
+            self.buffered_user_errors.append(
+                "Please enter the full day rate")
+        try:
+            self.reg_T_full_day_rate_int = int(float(self.reg_T_half_day_rate)*100)
+        except:
+            self.buffered_user_errors.append(
+                "Please enter a valid price for the full day rate")
+        # if self.reg_T_availability_start_date == datetime.datetime.now().strftime('%d/%m/%Y'):
+        #     self.buffered_user_errors.append(
+        #         "Please Enter a Valid Date")
 
     def generate_ui_label_and_entry(self, __widget, __list, **kw):
         __label_padx = kw.pop('label_width', 20)
@@ -312,10 +307,10 @@ class uiInterface:
             __label.grid(row=__index, sticky=NW)
             if var != None:
                 entry_dic = {}
-                # Apply the right properties
                 entry_dic['width'] = __entry_width
                 entry_dic['textvariable'] = var
 
+                # Apply the right properties
                 if(__property == "{type=pw"):
                     entry_dic['show'] = "*"
                     __entry = Entry(__widget, entry_dic)
@@ -366,15 +361,16 @@ class uiInterface:
         return __label_frame
 
     def add_two_radio_buttons_get_var(self, __widget, __textB1, __textB2, **kw):
-        self.user_type_input = IntVar()
-        __radio_button1 = Radiobutton(self.Label_Frame_Reg, text="Tool User", variable=self.user_type_input,
+        __user_type_input = IntVar()
+        __radio_button1 = Radiobutton(self.Label_Frame_Reg, text="Tool User", variable=__user_type_input,
                                       value=1)
-        __radio_button2 = Radiobutton(self.Label_Frame_Reg, text="Tool Owner", variable=self.user_type_input,
+        __radio_button2 = Radiobutton(self.Label_Frame_Reg, text="Tool Owner", variable=__user_type_input,
                                       value=2)
         kw['column'] = 1
         __radio_button1.grid(kw)
         kw['column'] = 2
         __radio_button2.grid(kw)
+        return __user_type_input
 
     def clear_errors(self):
         for __l in self.outputed_errors_list:

@@ -4,13 +4,10 @@ import sqlite3
 class DatabaseInterface:
 
     # the Constructor will automatically create AND/OR connect to the database file
-    def __init__(self, __databaseName="database", __mainTableName="MainTable", *__databaseColumnTupleInput):
-        self.selected_table = __mainTableName
+    def __init__(self, __databaseName="database"):
+        self.selected_table = ""
         self.dbConnection = sqlite3.connect(f"{__databaseName}.db")
         self.dbCursor = self.dbConnection.cursor()
-
-        # The following line doesn't do anything if the table already exists
-        self.__create_table(__mainTableName, __databaseColumnTupleInput)
 
     def __del__(self):
         self.close_database()

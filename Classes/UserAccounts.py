@@ -39,9 +39,9 @@ class UserClass():
         self.inventory_table = "Tool_Inventory"
         self.fetched_user_details = []
 
-        # The following parameters will be used to create the table column values if it's not already created
-        self.dbInterface = DatabaseInterface(
-            self.database_name,
+        # Create tables if not already created:
+        self.dbInterface = DatabaseInterface(self.database_name)
+        self.dbInterface.create_table(
             self.user_details_table,
             # Remember to update the enum if any of the these values gets changed
             "Unique_User_ID", int,
@@ -99,6 +99,7 @@ class UserClass():
             self.dbInterface.select_table(self.user_details_table)
             __list_line_results = self.dbInterface.fetch_lines_from_database(
                 f"Email_Address = '{__user_email}'")
+            # Gets the first result, there should only be one
             self.fetched_user_details = __list_line_results[0]
             print(self.fetched_user_details)
             if(len(__list_line_results) > 1):
