@@ -3,63 +3,27 @@ import time
 import datetime
 import uuid
 import bcrypt
+from tkinter import Image  # for the image type
+
 from abc import ABC, abstractmethod
-from enum import Enum, auto
+
 
 # Local Imports
-from Classes.DatabaseInterface import DatabaseInterface
-
-
-class E_User_Details_Table(enum.Enum):
-    # this enum is to be used with: fetched_user_details
-    Unique_User_ID = 0
-    First_Name = 1
-    Surname = 2
-    Date_of_Birth = 3
-    Phone_Number = 4
-    Home_Address = 5
-    Post_Code = 6
-    Email_Address = 7
-    Password_Hash = 8
-    Outstanding_Balance = 9
-    Type_of_User = 10
-
-
-User_Details_Table_Index = [
-    "Unique_User_ID",
-    "First_Name",
-    "Surname",
-    "Date_of_Birth",
-    "Phone_Number",
-    "Home_Address",
-    "Post_Code",
-    "Email_Address",
-    "Password_Hash",
-    "Outstanding_Balance",
-    "Type_of_User",
-]
+try:
+    from Classes.DatabaseInterface import DatabaseInterface
+except:
+    pass
 
 
 class UserClass():
 
     def __init__(self):
-        self.session_ID = 0
-        # Use this to implement a system that uses this ID to redirect
-        # the user to the correct menu (Tool Owner vs Tool User)
-        # I may save this ID to the database?
-        # Encrypt Session?
+        self.user_class_error_buffer = []
         self.database_name = "Database"
-        self.user_details_table = "User_Details"
-        self.orders_table = "Orders"
-        self.inventory_table = "Tool_Inventory"
-        self.fetched_user_details = []
-
-        # Create tables if not already created:
         self.dbInterface = DatabaseInterface(self.database_name)
-        self.dbInterface.create_table(
-            self.user_details_table,
-            # Remember to update the enum if any of the these values gets changed
-            "Unique_User_ID", int,
+        # Create tables if not already created:
+        __user_details_column_values_tuple = (
+            "Unique_User_ID", str,
             "First_Name", str,
             "Surname", str,
             "Date_of_Birth", str,
@@ -69,10 +33,14 @@ class UserClass():
             "Email_Address", str,
             "Password_Hash", str,
             "Outstanding_Balance", int,
-            "Type_of_User", str
+            "Type_of_User", str,
+            "Profile_Photo", Image
         )
-        self.dbInterface.create_table(
-            self.orders_table,
+        self.user_details_table = "User_Details"
+        self.User_Details_Table_Index = self.dbInterface.create_table_from_tuple(
+            self.user_details_table, __user_details_column_values_tuple)
+
+        __orders_table_column_values_tuple = (
             "Order_Date", str,
             "Item_Number", int,
             "Price", int,
@@ -82,29 +50,69 @@ class UserClass():
             "Drop_Off_Date", str,
             "Customer_Feedback", str
         )
-        self.dbInterface.create_table(
-            self.inventory_table,
-            "Item_Number", int,
+        self.orders_table = "Orders"
+        self.Orders_Table_Index = self.dbInterface.create_table_from_tuple(
+            self.orders_table, __orders_table_column_values_tuple)
+
+        __inv_table_column_values_tuple = (
+            "Unique_Item_Number", str,
             "Item_Name", str,
             "Half_Day_Fee", int,
             "Full_Day_Fee", int,
             "Description", str,
             "Availability", str,
             "Item_Process_State", str,
-            "User_ID", int
+            "User_ID", int,
+            "Tool_Photos", Image
         )
+        self.inventory_table = "Tool_Inventory"
+        self.Inventory_Table_Index = self.dbInterface.create_table_from_tuple(
+            self.inventory_table, __inv_table_column_values_tuple)
 
-    def register(self, *argv):
+        self.fetched_user_dictionary = {}
+        # the method "create_table_from_tuple" creates the tables and returns a list of the column values
+        # similar to the lists above but without the datatypes in between
+
+    def register(self, **kw):
         self.dbInterface.select_table(self.user_details_table)
-        self.dbInterface.data_entry(argv)
+        __password_hash = self.generate_hashed_password(
+            kw.pop("password", "123456789"))
+        user_details = (
+            str(self.generate_unique_ID()),
+            kw.pop("first_name", "None"),
+            kw.pop("surname", "None"),
+            kw.pop("birthday", "00/00/00"),
+            kw.pop("phone_number", 0),
+            kw.pop("home_address", "None"),
+            kw.pop("post_code", "None"),
+            kw.pop("email", "test@test"),
+            __password_hash,
+            kw.pop("outstanding_balance", 0),
+            kw.pop("user_type", "Tool_Owner"),
+            kw.pop("profile_photo", 0),
+        )
+        if len(kw) > 1:
+            self.user_class_error_buffer(
+                "ERROR - Please Update the user register method to match the given kw")
+        self.dbInterface.data_entry(user_details)
 
-    def register_tool(self, *argv):
+    def register_tool(self, **kw):
         self.dbInterface.select_table(self.inventory_table)
-        tool_info_and_owner = list(argv)
-        tool_info_and_owner.append("TODO_Item_Process_State")
-        tool_info_and_owner.append(
-            self.fetched_user_details[User_Details_Table_Index.index("Unique_User_ID")])
-        self.dbInterface.data_entry(tuple(tool_info_and_owner))
+        tool_info_and_owner = (
+            str(self.generate_unique_ID()),
+            kw.pop("item_name", "None"),
+            kw.pop("half_day_fee", 0),
+            kw.pop("full_day_fee", 0),
+            kw.pop("description", "None"),
+            kw.pop("availability", ""),
+            kw.pop("item_process_state", "With Owner"),
+            self.fetched_user_dictionary.get('Unique_User_ID'),
+            kw.pop("photos", 0)
+        )
+        if len(kw) > 1:
+            self.user_class_error_buffer(
+                "ERROR - Please Update the tool register method to match the given kw")
+        self.dbInterface.data_entry(tool_info_and_owner)
 
     def does_email_exist(self, __user_email: str):
         return self.update_fetched_user_details(__user_email)
@@ -112,11 +120,13 @@ class UserClass():
     def update_fetched_user_details(self, __user_email: str):
         try:
             self.dbInterface.select_table(self.user_details_table)
-            __list_line_results = self.dbInterface.fetch_lines_from_database(
+            __list_line_results = self.dbInterface.fetch_lines_from_db(
                 f"Email_Address = '{__user_email}'")
             # Gets the first result, there should only be one
-            self.fetched_user_details = __list_line_results[0]
-            print(self.fetched_user_details)
+            __fetched_user_details = __list_line_results[0]
+            self.fetched_user_dictionary = dict(
+                zip(self.User_Details_Table_Index, __fetched_user_details))
+            print(self.fetched_user_dictionary)
             if(len(__list_line_results) > 1):
                 print("Database ERROR - There is more than 1 match for the given email")
             return True
@@ -125,32 +135,29 @@ class UserClass():
 
     def fetch_user_listed_inventory(self):
         self.dbInterface.select_table(self.inventory_table)
-        __list_results = self.dbInterface.fetch_lines_from_database(
-            f"User_ID = {self.fetched_user_details[User_Details_Table_Index.index('Unique_User_ID')]}")
+        __user_unique_id = self.fetched_user_dictionary.get('Unique_User_ID')
+        __list_results = self.dbInterface.fetch_lines_from_db(
+            f"User_ID = {__user_unique_id}")  # This is for an SQL query, returns list with all the inventory of a given user
         return __list_results
 
-    @staticmethod
-    def generate_hashed_password(__password: str):
+    def generate_hashed_password(self, __password: str):
         __byte_str_pw = __password.encode("utf-8")
         __byte_str_hashed = bcrypt.hashpw(__byte_str_pw, bcrypt.gensalt())
         __hashed = __byte_str_hashed.decode("utf-8")
         return __hashed
 
-    @staticmethod
-    def generate_unique_ID():
+    def generate_unique_ID(self):
         __unique_number = int(uuid.uuid1())
         return __unique_number
 
     def check_password(self, __email: str, __password: str):
-        # check if email exists
-        # get password hash from database
         __byte_str_pw = __password.encode("utf-8")
-        __byte_str_password_hash = self.fetched_user_details[E_User_Details_Table.Password_Hash.value].encode(
-            "utf-8")
+        __byte_str_password_hash = self.fetched_user_dictionary.get(
+            'Password_Hash').encode("utf-8")
         return True if bcrypt.checkpw(__byte_str_pw, __byte_str_password_hash) else False
 
     def get_user_type(self):
-        return self.fetched_user_details[E_User_Details_Table.Type_of_User.value]
+        return self.fetched_user_dictionary.get('Type_of_User')
 
     def deliver_to_depot(self, tool):
         # Call the tool as being delivered from the tool class
@@ -173,3 +180,7 @@ class UserClass():
 
     def get_account_name(self):
         return self.__account_name
+
+
+if __name__ == '__main__':
+    print("Please run the program from __init__.py")

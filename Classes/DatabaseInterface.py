@@ -1,10 +1,12 @@
 import sqlite3
+from tkinter import Image  # for the image type
 
 
 class DatabaseInterface:
 
     # the Constructor will automatically create AND/OR connect to the database file
     def __init__(self, __databaseName="database"):
+        self.db_class_error_buffer = []
         self.selected_table = ""
         self.dbConnection = sqlite3.connect(f"{__databaseName}.db")
         self.dbCursor = self.dbConnection.cursor()
@@ -12,20 +14,25 @@ class DatabaseInterface:
     def __del__(self):
         self.close_database()
 
-    def __create_table(self, __name_of_table: str, __table_column_values: tuple):
+    def create_table_from_tuple(self, __name_of_table: str, __table_column_values: tuple):
         try:
             self.dbCursor.execute("CREATE TABLE IF NOT EXISTS " + __name_of_table +
                                   self.sqlite_query_param_builder(__table_column_values))
-            print("CREATE TABLE IF NOT EXISTS " + __name_of_table +
-                  self.sqlite_query_param_builder(__table_column_values))
         except:
-            print("ERROR - table failed to create")
-            print("CREATE TABLE IF NOT EXISTS " + __name_of_table +
-                  self.sqlite_query_param_builder(__table_column_values))
+            self.db_class_error_buffer.append("ERROR - Table failed to create")
+            self.db_class_error_buffer.append("Query used: CREATE TABLE IF NOT EXISTS " + __name_of_table +
+                                              self.sqlite_query_param_builder(__table_column_values))
         self.dbConnection.commit()
+        return self.create_intex_list_of_columns(__table_column_values)
 
     def create_table(self, __name_of_table, *argv):
-        self.__create_table(__name_of_table, argv)
+        self.create_table_from_tuple(__name_of_table, argv)
+
+    def create_intex_list_of_columns(self, __list):
+        __output_list = []
+        for i in range(0, len(__list), 2):
+            __output_list.append(__list[i])
+        return __output_list
 
     def select_table(self, __selected_table: str):
         self.selected_table = __selected_table
@@ -39,26 +46,24 @@ class DatabaseInterface:
     def data_entry(self, argv: tuple):
         try:
             self.dbCursor.execute(
-                "INSERT INTO " + self.selected_table + " VALUES " + str(argv))
+                "INSERT INTO " + self.selected_table + " VALUES " + str(tuple(argv)))
             self.dbConnection.commit()
-            print("INSERT INTO " + self.selected_table +
-                  " VALUES " + str(argv))
+
         except:
-            print("Error - Make sure you are passing in enough parameters to match the table where the data is being entered")
-            print(
-                "And make sure that the following SQL query is correct and that the types are also correct:")
-            print("INSERT INTO " + self.selected_table +
-                  " VALUES " + str(argv))
+            self.db_class_error_buffer.append(
+                "Error - Make sure you are passing in enough parameters to match the table where the data is being entered")
+            self.db_class_error_buffer.append(
+                "Query used: INSERT INTO " + self.selected_table + " VALUES " + str(tuple(argv)))
 
     # e.g. __identifying_exp = "Value3 = 342.54 AND Value4 = 'Cookie Master'"
-    def fetch_lines_from_database(self, __identifying_exp: str):
+    def fetch_lines_from_db(self, __identifying_exp: str):
         try:
             self.dbCursor.execute(
                 "SELECT * FROM " + self.selected_table + " WHERE " + __identifying_exp)
         except:
-            print("ERROR Executing SQLite Query:")
-            print("SELECT * FROM " + self.selected_table +
-                  " WHERE " + __identifying_exp)
+            self.db_class_error_buffer.append("ERROR Executing SQLite Query")
+            self.db_class_error_buffer.append(
+                "Query used: SELECT * FROM " + self.selected_table + " WHERE " + __identifying_exp)
         __result_list = self.dbCursor.fetchall()
         return __result_list
 
@@ -72,7 +77,10 @@ class DatabaseInterface:
             self.dbCursor.execute(__custom_query)
             self.dbConnection.commit()
         except:
-            print("ERROR - The custom query didn't work")
+            self.db_class_error_buffer.append(
+                "ERROR Executing custom SQLite Query")
+            self.db_class_error_buffer.append(
+                str("Query used:"+__custom_query))
 
     def close_database(self):
         try:
@@ -93,10 +101,12 @@ class DatabaseInterface:
                         int: " INTEGER ",
                         float: " REAL ",
                         str: " TEXT ",
+                        Image: "BLOB"
                     }[__databaseColumnList[__j]]
                     __localWorkingTypeStrList.extend([__option])
                 except:
-                    self.unsupported_type()
+                    self.db_class_error_buffer.append(
+                        "Error - Unsupported database type")
             else:
                 __localWorkingValueStrList.extend([
                     __databaseColumnList[__j]])
@@ -105,5 +115,6 @@ class DatabaseInterface:
                 [__localWorkingValueStrList[__k] + __localWorkingTypeStrList[__k]])
         return str(tuple(__localFinalStrList)).replace("'", "")
 
-    def unsupported_type(self):
-        print("Error - Unsupported database type")
+
+if __name__ == '__main__':
+    print("Please run the program from __init__.py")

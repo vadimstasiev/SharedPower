@@ -1,4 +1,4 @@
-# please install the following non-standard libraries: bcrypt
+# please install the following non-standard libraries: bcrypt, Pillow?(not sure if actually needed) 
 
 import sys
 import time
@@ -6,8 +6,10 @@ import datetime
 from tkinter import *
 
 # Import local downloaded classes
-from ImportedClasses.calendar_ import *
-from ImportedClasses.dateentry import *
+from ImportedClasses.ScrollableContainer import ScrollableContainer
+from ImportedClasses.calendar_ import Calendar
+from ImportedClasses.dateentry import DateEntry
+from ImportedClasses.moneyparser import price_str, price_dec
 # Import local classes
 from Classes.DatabaseInterface import DatabaseInterface
 from Classes.UserAccounts import UserClass
@@ -24,12 +26,11 @@ class uiInterface:
         self.outputed_errors_list = []
         self.user_account = UserClass()
 
-    def run(self, **kw):
-        start_function = kw.pop('start_function', self.log_in_ui)
-        start_function()
+    def run(self):
+        self.log_in_ui()
 
-    def log_in_ui(self):
-        self.setup_root_frame()
+    def log_in_ui(self, **kw):
+        self.setup_new_window()
         self.init_default_UI()
         self.UI_root.title("Shared Power - Log in")
         self.add_menu_bar_1()
@@ -46,22 +47,30 @@ class uiInterface:
         ]
         self.generate_ui_label_and_entry(
             __inputPanel, label_text_and_vars, entry_width=40)
+        if len(kw)>0:
+            self.email_TKentry.set(kw.get('email', ''))
+            self.password_TKentry.set(kw.get('password', ''))
 
         register_label_button = Label(
             __inputPanel, text="Don't have an account? Click to Register", fg="#0400ff")
         register_label_button.bind(
             '<Button-1>', self.goto_register_user_menu)
         register_label_button.grid(row=2, column=1, sticky="e")
+
+
         # Button for submittion
         submit_button = Button(self.UI_root_frame, text="Log in", command=self.process_log_in).grid(
             column=2, padx=20, pady=20, ipadx=10, ipady=5)
+        #Bind return key
+        def Return_keypressed(event):
+            self.process_log_in()
+        self.UI_root.bind('<Return>', Return_keypressed)
         self.UI_root.mainloop()
 
-    def process_log_in(self):
+    def process_log_in(self, **kw):
         self.clear_errors()
         __email_address = self.email_TKentry.get()
         __password = self.password_TKentry.get()
-
         if not (self.user_account.does_email_exist(__email_address)):
             self.buffered_user_errors.append("Account not found")
         else:
@@ -79,7 +88,7 @@ class uiInterface:
         self.generate_ui_output_errors(self.UI_root_frame, starting_index=100)
 
     def register_user_ui(self):
-        self.setup_root_frame()
+        self.setup_new_window()
         self.init_default_UI()
         self.UI_root.title("Shared Power - Register New User")
         self.add_menu_bar_2()
@@ -122,6 +131,10 @@ class uiInterface:
         submit_button = Button(self.Label_Frame_Reg, text="Register", command=self.process_register_new_user)
         submit_button.grid(column=2, ipadx=10, ipady=5)
 
+
+        def Return_keypressed(event):
+            self.process_register_new_user()
+        self.UI_root.bind('<Return>', Return_keypressed)
         self.UI_root.mainloop()
 
     def process_register_new_user(self):
@@ -129,19 +142,16 @@ class uiInterface:
         self.validate_register_user_input()
 
         if(len(self.buffered_user_errors) == 0):
-            self.reg_U_password_hash = UserClass.generate_hashed_password(self.reg_U_password)
             self.user_account.register(
-                UserClass.generate_unique_ID(),
-                self.reg_U_first_name,
-                self.reg_U_surname,
-                self.reg_U_birthday_date,
-                self.reg_U_phone_number,
-                self.reg_U_home_address,
-                self.reg_U_post_code,
-                self.reg_U_email,
-                self.reg_U_password_hash,
-                0,                                           # Outstanding Balance
-                "Tool_User" if self.reg_U_user_type == 1 else "Tool_Owner"
+                first_name=self.reg_U_first_name,
+                surname=self.reg_U_surname,
+                bithday=self.reg_U_birthday_date,
+                phone_number=self.reg_U_phone_number,
+                home_address=self.reg_U_home_address,
+                post_code=self.reg_U_post_code,
+                email=self.reg_U_email,
+                password=self.reg_U_password,
+                user_type = "Tool_User" if self.reg_U_user_type == 1 else "Tool_Owner"
             )
             self.log_in_ui()
         else:
@@ -187,7 +197,7 @@ class uiInterface:
             self.buffered_user_errors.append("Please select the type of account")
 
     def register_tool_ui(self):
-        self.setup_root_frame()
+        self.setup_new_window()
         self.init_default_UI()
         self.UI_root.title("Shared Power - Register New Tool")
         self.add_menu_bar_4()
@@ -196,8 +206,8 @@ class uiInterface:
             self.UI_root_frame, "Register Tool", ipadx=50, ipady=30, padx=5, pady=5)
 
         self.tool_name = StringVar()
-        self.half_day_rate = IntVar()
-        self.full_day_rate = IntVar()
+        self.half_day_rate = StringVar()
+        self.full_day_rate = StringVar()
         self.post_code_TKentry = StringVar()
         self.home_address_TKentry = StringVar()
 
@@ -213,7 +223,7 @@ class uiInterface:
         self.generate_ui_label_and_entry(
             self.Label_Frame_Reg, label_text_and_vars)
         self.description_text_box = Text(
-            self.Label_Frame_Reg, height=20, width=40)
+            self.Label_Frame_Reg, wrap=WORD, height=20, width=40)
         self.description_text_box.grid(row=1, column=1)
 
         # Custom calendar input widget
@@ -227,6 +237,7 @@ class uiInterface:
         submit_button = Button(self.Label_Frame_Reg, text="Register", command=self.process_register_new_tool).grid(
             column=2, ipadx=10, ipady=5)
 
+
         self.UI_root.mainloop()
 
     def process_register_new_tool(self):  # TODO TODO TODO
@@ -235,12 +246,12 @@ class uiInterface:
         if(len(self.buffered_user_errors) == 0):
             self.clear_errors()
             self.user_account.register_tool(
-                UserClass.generate_unique_ID(),
-                self.reg_T_tool_name,
-                self.reg_T_half_day_rate_int,
-                self.reg_T_full_day_rate_int,
-                self.reg_T_description,
-                self.get_packed_availability_dates()
+                item_name=self.reg_T_tool_name,
+                half_day_fee=self.get_savable_int_price(self.reg_T_half_day_rate),
+                full_day_fee=self.get_savable_int_price(self.reg_T_full_day_rate),
+                description=self.reg_T_description,
+                availability=self.get_packed_availability_dates(),
+                photos=0 # hopefully all photos can be packed inside of this
             )
             self.current_menu()
         else:
@@ -267,8 +278,8 @@ class uiInterface:
         if self.reg_T_half_day_rate == 0:
             self.buffered_user_errors.append(
                 "Please enter the half day rate")
-        try:
-            self.reg_T_half_day_rate_int = int(float(self.reg_T_half_day_rate)*100)
+        try: # TODO
+            float(self.reg_T_half_day_rate)
         except:
             self.buffered_user_errors.append(
                 "Please enter a valid price for the half day rate")
@@ -277,7 +288,7 @@ class uiInterface:
             self.buffered_user_errors.append(
                 "Please enter the full day rate")
         try:
-            self.reg_T_full_day_rate_int = int(float(self.reg_T_half_day_rate)*100)
+            float(self.reg_T_full_day_rate)
         except:
             self.buffered_user_errors.append(
                 "Please enter a valid price for the full day rate")
@@ -388,7 +399,7 @@ class uiInterface:
             __l.destroy()
 
     def tool_user_options_ui(self):
-        self.setup_root_frame()
+        self.setup_new_window()
         self.UI_root.resizable(width=False, height=False)
 
         self.current_menu = self.tool_user_options_ui
@@ -408,7 +419,7 @@ class uiInterface:
         self.UI_root.mainloop()
 
     def tool_owner_options_ui(self):
-        self.setup_root_frame()
+        self.setup_new_window()
         self.UI_root.resizable(width=False, height=False)
 
         self.current_menu = self.tool_owner_options_ui
@@ -430,11 +441,14 @@ class uiInterface:
 
         self.UI_root.mainloop()
 
-    def setup_root_frame(self):
+    def setup_new_window(self):
+        self.UI_root.resizable(width=True, height=True)
+        self.UI_root.minsize(0, 0)
         __list = self.get_all_children()
         for __child in __list:
             __child.destroy()
-        self.UI_root_frame = Frame(height=2, bd=1, relief=SUNKEN)
+        self.UI_root_frame = Frame(self.UI_root, height=2, bd=1, relief=SUNKEN)
+        self.UI_root.geometry("")
         self.UI_root_frame.grid()
 
     def init_default_UI(self):
@@ -485,15 +499,75 @@ class uiInterface:
         pass  # TODO
 
     def menu_view_listed_inventory(self):  # TODO
-        print("#"*100)
-        __list_results = self.user_account.fetch_user_listed_inventory()
-        [print(row) for row in __list_results] # use something like this to generate all tool list
-        # add drag bar if list > 4 or 5 items
-        print("#"*100)
+        self.setup_new_window()
+        self.UI_root.title("Shared Power - View Stock Inventory")
+        self.add_menu_bar_4()
+        self.UI_root.grid_rowconfigure(0, weight=1)
+        self.UI_root.grid_columnconfigure(0, weight=1)
+        self.UI_root.minsize(1000, 700)
+        sc = ScrollableContainer(self.UI_root, bd=2)
 
-    # def display_list_tool_gui(self, **kw):
+        self.image_references = []  # keeps references so they don't dissapear
+        __list_results = self.user_account.fetch_user_listed_inventory()
+        if len(__list_results)!=0:
+            __i=0
+            for __list_row in __list_results:
+                __i+=1
+                self.display_list_tool_gui(sc.container, __list_row)    
+        else:
+            Label(self.UI_root_frame, text='Your inventory is empty', font=("Helvetica", 20)).grid(padx=100, pady=300)
+        sc.grid(row=0, column=0, sticky='nsew')
+        self.UI_root.mainloop()        
+
+    def display_list_tool_gui(self, __parent, __list_row, **kw):
+
+        __item_info_dict = dict(zip(self.user_account.Inventory_Table_Index, __list_row))
+        __Tool_Frame = self.add_label_frame(
+            __parent, __item_info_dict.get('Item_Name'), ipadx=50, ipady=30, padx=5, pady=5)
+
+        photo = PhotoImage(file = r".\random.png")
+        
+        self.image_references.append(photo.subsample(4, 4))
+        Label(__Tool_Frame, image=self.image_references[len(self.image_references)-1]).grid(rowspan=4, padx=20, pady=10,)
+
+        _list=[]
+        _list.append('Half day rate: ' + self.get_displayable_price(__item_info_dict.get('Half_Day_Fee')))
+        _list.append('Full day rate: ' + self.get_displayable_price(__item_info_dict.get('Full_Day_Fee')))
+        _list.append('Current process state: ' + __item_info_dict.get('Item_Process_State'))
+        _list.append('Item Number: ' + __item_info_dict.get('Unique_Item_Number'))
+
+    
+        
+        _row_end=1
+        _column_offset =1
+        _list_len = len(_list)/2 + _column_offset
+        _column_start = _column_offset
+        _column_end = int(_list_len)
+        # if even both _row_end and (len(_list)/2) are going to be the same
+        # if uneven _row_end is going to be missing a column with only 1 row
+        if _column_end != _list_len:
+            case="uneven"
+            _column_end += 1
+        else:
+            case="even"
+        def add_Label(__text, _column, _row):
+            Label(__Tool_Frame, text=__text).grid(row=_row, column=_column,sticky="nw")
+        _index=0
+        for _i in range(_column_start,_column_end):
+            for _j in range(0, _row_end+1):
+                if case == "even":
+                    add_Label(_list[_index], _i, _j)
+                elif case=="uneven":
+                    if(_i!=_column_end):
+                        add_Label(_list[_index], _i, _j)
+                _index+=1
+
+
+        item_descrition = Text(__Tool_Frame, wrap=WORD, height=3, width=50)
+        item_descrition.grid(row=3, column=1, columnspan=100)
+        item_descrition.insert('end', __item_info_dict.get('Description', "error"))
+        item_descrition.config(state=DISABLED)
         # take kw
-        # e.g. (2.355875649467236e+36, 'tool_owner_tool', 3000, 3000, 'new drill \\n', '27/12/201924/12/2020', 'TODO_Item_Process_State', 1.6201268956441832e+38)
         # labelframe, display Tool Name, half day rate and full day rate and button to bring up a separate individual page
         # change make calendar show events, put dates in an array and save on db
         # for loop to go through all dates?
@@ -526,9 +600,6 @@ class uiInterface:
     def goto_register_user_menu(self, event):
         self.register_user_ui()
 
-    def get_unix_timestamp(self):
-        return int(time.time())
-
     def get_all_children(self):
         __list = self.UI_root.winfo_children()
         for item in __list:
@@ -537,13 +608,31 @@ class uiInterface:
         return __list
 
     def get_buffered_user_errors(self):
+        __db_class_error_buffer = self.user_account.dbInterface.db_class_error_buffer
+        if(len(__db_class_error_buffer)>0):
+            self.buffered_user_errors.append(str("#"*40))
+            self.buffered_user_errors.append("Database Class Errors:")
+            self.buffered_user_errors.extend(__db_class_error_buffer)
+        __user_class_error_buffer = self.user_account.user_class_error_buffer
+        if(len(__user_class_error_buffer)>0):
+            self.buffered_user_errors.append(str("#"*40))
+            self.buffered_user_errors.append("User Class Errors:")
+            self.buffered_user_errors.extend(__user_class_error_buffer)
         buffered_errors = tuple(self.buffered_user_errors)
         self.buffered_user_errors.clear()
         return buffered_errors
+
+    def get_savable_int_price(self, __price):
+        return int(float(price_str(__price))*100)
+    
+    def get_displayable_price(self, __price):
+        return "£ "+str(price_dec(str(float(__price)/100)))
+
 
     ########################################################    Main Program    ###########################################
 
 
 if __name__ == '__main__':
     program = uiInterface()
-    program.run()
+    # program.run()
+    program.log_in_ui(email="test@test", password = "123456789") # Just to TEST
