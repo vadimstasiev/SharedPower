@@ -1,16 +1,16 @@
-# please install the following non-standard libraries: bcrypt, Pillow?(not sure if actually needed) 
+# please install the following non-standard libraries: bcrypt, Pillow?(not sure if actually needed) , Babel, tkcalendar
 
 import sys
 import time
 import datetime
 from tkinter import *
 
-# Import local downloaded classes
-from ImportedClasses.ScrollableContainer import ScrollableContainer
-from ImportedClasses.calendar_ import Calendar
-from ImportedClasses.dateentry import DateEntry
-from ImportedClasses.moneyparser import price_str, price_dec
 # Import local classes
+from Classes.tkinterwidgets.scrollablecontainer import ScrollableContainer
+from Classes.tkinterwidgets.getfileswidget import GetFilesWidget
+from Classes.tkinterwidgets.calendar_ import Calendar
+from Classes.tkinterwidgets.dateentry import DateEntry
+from Classes.MoneyParser import price_str, price_dec
 from Classes.DatabaseInterface import DatabaseInterface
 from Classes.UserAccounts import UserClass
 
@@ -25,6 +25,10 @@ class uiInterface:
         self.buffered_user_errors = []
         self.outputed_errors_list = []
         self.user_account = UserClass()
+
+        self.image_filetypes = [
+            ('Image files', '*.png'),
+        ]
 
     def run(self):
         self.log_in_ui()
@@ -59,7 +63,7 @@ class uiInterface:
 
 
         # Button for submittion
-        submit_button = Button(self.UI_root_frame, text="Log in", command=self.process_log_in).grid(
+        Button(self.UI_root_frame, text="Log in", command=self.process_log_in).grid(
             column=2, padx=20, pady=20, ipadx=10, ipady=5)
         #Bind return key
         def Return_keypressed(event):
@@ -218,13 +222,14 @@ class uiInterface:
             ("Full Day Rate: ", self.full_day_rate),
             ("Availablity start date: ", None),
             ("Availablity end date: ", None),
+            ("Choose Photo: ", None),
 
         ]
         self.generate_ui_label_and_entry(
             self.Label_Frame_Reg, label_text_and_vars)
         self.description_text_box = Text(
-            self.Label_Frame_Reg, wrap=WORD, height=20, width=40)
-        self.description_text_box.grid(row=1, column=1)
+            self.Label_Frame_Reg, wrap=WORD, height=10, width=80)
+        self.description_text_box.grid(row=1, column=1, columnspan=5)
 
         # Custom calendar input widget
         self.availability_start_date_StrVar = StringVar()
@@ -233,9 +238,15 @@ class uiInterface:
         self.availability_end_date_StrVar = StringVar()
         self.add_date_entry(
             self.Label_Frame_Reg, self.availability_end_date_StrVar, row=5, column=1, columnspan=2, sticky=W)
+        self.file_name = ''
 
-        submit_button = Button(self.Label_Frame_Reg, text="Register", command=self.process_register_new_tool).grid(
-            column=2, ipadx=10, ipady=5)
+        
+        files_widget = GetFilesWidget(self.Label_Frame_Reg, empty_message='Add Photo', file_types=self.image_filetypes, max_items=5)
+        files_widget.grid(row=6, column=1, columnspan=2, sticky=W)
+
+        Button(self.Label_Frame_Reg, text="Register", command=self.process_register_new_tool).grid(
+            column=5, ipadx=10, ipady=5)
+        
 
 
         self.UI_root.mainloop()
@@ -261,7 +272,7 @@ class uiInterface:
 
     def validate_register_tool_input(self):
         self.reg_T_tool_name = str(self.tool_name.get())
-        self.reg_T_description = str(self.description_text_box.get("1.0", END))
+        self.reg_T_description = str(self.description_text_box.get("1.0", 'end-1c'))
         self.reg_T_half_day_rate = str(self.half_day_rate.get())
         self.reg_T_full_day_rate = str(self.full_day_rate.get())
         self.reg_T_availability_list = []
@@ -444,6 +455,7 @@ class uiInterface:
     def setup_new_window(self):
         self.UI_root.resizable(width=True, height=True)
         self.UI_root.minsize(0, 0)
+        self.UI_root.unbind('<Return>')
         __list = self.get_all_children()
         for __child in __list:
             __child.destroy()
@@ -500,12 +512,13 @@ class uiInterface:
 
     def menu_view_listed_inventory(self):  # TODO
         self.setup_new_window()
+        self.UI_root.resizable(width=False, height=True)
         self.UI_root.title("Shared Power - View Stock Inventory")
         self.add_menu_bar_4()
         self.UI_root.grid_rowconfigure(0, weight=1)
         self.UI_root.grid_columnconfigure(0, weight=1)
-        self.UI_root.minsize(1000, 700)
-        sc = ScrollableContainer(self.UI_root, bd=2)
+        self.UI_root.minsize(900, 700)
+        sc = ScrollableContainer(self.UI_root, bd=2, scroll='vertical')
 
         self.image_references = []  # keeps references so they don't dissapear
         __list_results = self.user_account.fetch_user_listed_inventory()
@@ -535,7 +548,6 @@ class uiInterface:
         _list.append('Full day rate: ' + self.get_displayable_price(__item_info_dict.get('Full_Day_Fee')))
         _list.append('Current process state: ' + __item_info_dict.get('Item_Process_State'))
         _list.append('Item Number: ' + __item_info_dict.get('Unique_Item_Number'))
-
     
         
         _row_end=1
@@ -543,15 +555,14 @@ class uiInterface:
         _list_len = len(_list)/2 + _column_offset
         _column_start = _column_offset
         _column_end = int(_list_len)
-        # if even both _row_end and (len(_list)/2) are going to be the same
-        # if uneven _row_end is going to be missing a column with only 1 row
+
         if _column_end != _list_len:
             case="uneven"
             _column_end += 1
         else:
             case="even"
         def add_Label(__text, _column, _row):
-            Label(__Tool_Frame, text=__text).grid(row=_row, column=_column,sticky="nw")
+            Label(__Tool_Frame, text=__text).grid(row=_row, column=_column, padx=30, sticky="nw")
         _index=0
         for _i in range(_column_start,_column_end):
             for _j in range(0, _row_end+1):
@@ -565,7 +576,20 @@ class uiInterface:
 
         item_descrition = Text(__Tool_Frame, wrap=WORD, height=3, width=50)
         item_descrition.grid(row=3, column=1, columnspan=100)
-        item_descrition.insert('end', __item_info_dict.get('Description', "error"))
+
+        _desc_amalgam = __item_info_dict.get('Description', "error")
+        _desc = _desc_amalgam.replace("\\n", " ")
+        _max_char_len = 130
+        if len(_desc) > _max_char_len:
+            _new_desc = ""
+            _word_list = _desc.split(" ")
+            for _word in _word_list:
+                if len(_new_desc) < _max_char_len:
+                    _new_desc += f" {_word}"
+            _desc = _new_desc + " ( . . . ) "
+        # for _i in _desc_list:
+        #     _line = _i.strip('\\t')
+        item_descrition.insert('end', _desc)
         item_descrition.config(state=DISABLED)
         # take kw
         # labelframe, display Tool Name, half day rate and full day rate and button to bring up a separate individual page
