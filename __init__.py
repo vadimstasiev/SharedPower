@@ -1,4 +1,4 @@
-# please install the following non-standard libraries: bcrypt, Pillow?(not sure if actually needed) , Babel, tkcalendar
+# please install the following non-standard libraries: bcrypt, pillow , tkcalendar (includes Babel which is needed)
 
 import sys
 import time
@@ -7,7 +7,7 @@ from tkinter import *
 
 # Import local classes
 from Classes.tkinterwidgets.scrollablecontainer import ScrollableContainer
-from Classes.tkinterwidgets.getfileswidget import GetFilesWidget
+from Classes.tkinterwidgets.getfileswidget import GetFilesWidget, GetImagesWidget
 from Classes.tkinterwidgets.calendar_ import Calendar
 from Classes.tkinterwidgets.dateentry import DateEntry
 from Classes.MoneyParser import price_str, price_dec
@@ -119,7 +119,8 @@ class uiInterface:
             ("Email: ", self.email_TKentry),
             ("Password: #{type=pw", self.password_TKentry),
             ("Confirm Password: #{type=pw", self.confirm_password_TKentry),
-            ("User Type: ", None)
+            ("User Type: ", None),
+            ("User Photo: ", None)
         ]
         self.generate_ui_label_and_entry(
             self.Label_Frame_Reg, label_text_and_vars)
@@ -131,6 +132,9 @@ class uiInterface:
 
         self.user_type_IntVar = self.add_two_radio_buttons_get_var(
             self.Label_Frame_Reg, "Tool User", "Tool Owner", row=9, sticky=W)
+
+        files_widget = GetImagesWidget(self.Label_Frame_Reg, empty_message='Add Photo', max_items=1)
+        files_widget.grid(row=10, column=1, columnspan=2, pady=4, sticky=W)
 
         submit_button = Button(self.Label_Frame_Reg, text="Register", command=self.process_register_new_user)
         submit_button.grid(column=2, ipadx=10, ipady=5)
@@ -241,11 +245,11 @@ class uiInterface:
         self.file_name = ''
 
         
-        files_widget = GetFilesWidget(self.Label_Frame_Reg, empty_message='Add Photo', file_types=self.image_filetypes, max_items=5)
+        files_widget = GetImagesWidget(self.Label_Frame_Reg, empty_message='Add Photo', max_items=5)
         files_widget.grid(row=6, column=1, columnspan=2, sticky=W)
 
         Button(self.Label_Frame_Reg, text="Register", command=self.process_register_new_tool).grid(
-            column=5, ipadx=10, ipady=5)
+            column=5, ipadx=10, ipady=5)    
         
 
 

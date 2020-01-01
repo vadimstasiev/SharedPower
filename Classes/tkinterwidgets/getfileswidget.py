@@ -1,4 +1,4 @@
-from tkinter import Tk, Frame, Button, Image, PhotoImage
+from tkinter import Tk, Frame, Button, PhotoImage
 from tkinter import messagebox
 from tkinter.filedialog import askopenfilename
 
@@ -40,7 +40,7 @@ class GetFilesWidget(Frame):
             self.add_button.grid_forget()
 
     def place__ADD_button(self):
-        self.add_button.grid(row=0, column=2)
+        self.add_button.grid(row=0, column=2, sticky='nw')
 
     def place__fileFrame(self):
         fileFrame = Frame(self)
@@ -57,42 +57,36 @@ class GetFilesWidget(Frame):
         self.refresh__ADD_button()
 
     def onclick_get_filename(self, parent, filepath_button: Button):
-        file_obtained = False
+        file_obtained_Bool = False
         __text = filepath_button.cget('text')
         if __text == self.empty_message:
             if len(self.ftypes) != 0:
                 filepath = askopenfilename(filetypes=self.ftypes)
             else:
                 filepath = askopenfilename()
+            self.current_filepath = filepath
             display_text = filepath[filepath.rfind('/')+1:]
             if display_text != "" and display_text not in self.files_name_str_list:
-                file_obtained = True
+                file_obtained_Bool = True
                 self.files_path_str_list.append(filepath)
                 self.files_name_str_list.append(display_text)
                 filepath_button.path_holder = filepath
                 filepath_button.filename_holder = display_text
                 filepath_button.config(text=display_text)
-                ###############
-
-                photo = PhotoImage(file=filepath)
-                displayable_image = photo.subsample(4, 4)
-                self.image_references.append(displayable_image)
-                filepath_button.config(image=displayable_image)
-
-                ###############
             elif(filepath == ""):
                 pass
             else:
                 messagebox.showerror(
                     "Error", "This file or a file with the same name was already added")
+        return file_obtained_Bool
 
     def place__DEL_button(self, parent, filepath_button: Button):
         del_button = Button(parent, text="-")
         del_button.config(command=lambda: self.onclick_DEL(
             parent, filepath_button))
-        del_button.grid(row=0, column=1)
+        del_button.grid(row=0, column=1, sticky='ns')
 
-    def onclick_DEL(self, parent, filepath_button):
+    def onclick_DEL(self, parent, filepath_button: Button):
         if parent != self.fileFrameList[0]:
             self.fileFrameList.remove(parent)
             parent.destroy()
@@ -113,12 +107,24 @@ class GetImagesWidget(GetFilesWidget):
     def __init__(self, master, **kwargs):
         self.image_references = []
         GetFilesWidget.__init__(self, master, **kwargs)
+        self.ftypes = [
+            ('Image files', '*.png'),
+        ]
 
     def onclick_get_filename(self, parent, filepath_button: Button):
-        GetFilesWidget.onclick_get_filename(self, parent, filepath_button)
+        if GetFilesWidget.onclick_get_filename(self, parent, filepath_button) == True:
+            photo = PhotoImage(file=self.current_filepath)
+            displayable_image = photo.subsample(4, 4)
+
+            self.image_references.append(displayable_image)
+            filepath_button.config(image=displayable_image)
+
+    def onclick_DEL(self, parent, filepath_button: Button):
+        filepath_button.config(image="")
+        GetFilesWidget.onclick_DEL(self, parent, filepath_button)
 
 
 if __name__ == "__main__":
     root = Tk()
-    GetFilesWidget(root).grid(padx=100, pady=100)
+    GetImagesWidget(root).grid(padx=100, pady=100)
     root.mainloop()
