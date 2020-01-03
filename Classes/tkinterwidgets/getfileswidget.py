@@ -60,9 +60,8 @@ class GetFilesWidget(Frame):
         self.refresh__ADD_button()
 
     def automatic__file_input(self, files):
-        if files[len(files)-1] == "":
-            files.pop()
-        for i in range(0, len(files)-1):
+
+        for i in range(0, len(files)-2):
             self.place__fileFrame()
         fileFrameANDpathbuttonList = zip(
             self.fileFrameList, self.filePathButtonList, files)
@@ -140,11 +139,6 @@ class GetFilesWidget(Frame):
             if j not in self.files_path_str_list:
                 removed.append(j)
         return removed, added
-
-    def are_same_files(self, file1, file2):
-        file1 = file1[file1.rfind('/')+1:]
-        file2 = file2[file2.rfind('/')+1:]
-        return file1 == file2
 
     def get_PATHS(self):
         return self.files_path_str_list

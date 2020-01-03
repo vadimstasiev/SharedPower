@@ -202,7 +202,8 @@ class DateEntry(ttk.Entry):
         except ValueError:
             # nothing to cancel
             pass
-        self._determine_downarrow_name_after_id = self.after(10, self._determine_downarrow_name)
+        self._determine_downarrow_name_after_id = self.after(
+            10, self._determine_downarrow_name)
 
     def _determine_downarrow_name(self, event=None):
         """Determine downarrow button name."""
@@ -219,7 +220,8 @@ class DateEntry(ttk.Entry):
             if name:
                 self._downarrow_name = name
             else:
-                self._determine_downarrow_name_after_id = self.after(10, self._determine_downarrow_name)
+                self._determine_downarrow_name_after_id = self.after(
+                    10, self._determine_downarrow_name)
 
     def _on_motion(self, event):
         """Set widget state depending on mouse position to mimic Combobox behavior."""
@@ -395,7 +397,7 @@ class DateEntry(ttk.Entry):
         self._cursor = str(entry_kw.get('cursor', self._cursor))
         if entry_kw.get('state') == 'readonly' and self._cursor == 'xterm' and 'cursor' not in entry_kw:
             entry_kw['cursor'] = 'arrow'
-            self._cursor  = 'arrow'
+            self._cursor = 'arrow'
         ttk.Entry.configure(self, entry_kw)
 
         kwargs['cursor'] = kwargs.pop('calendar_cursor', None)
@@ -427,3 +429,62 @@ class DateEntry(ttk.Entry):
         """Return the content of the DateEntry as a datetime.date instance."""
         self._validate_date()
         return self.parse_date(self.get())
+
+
+if __name__ == "__main__":
+    def example1():
+        def print_sel():
+            print(cal.selection_get())
+            cal.see(datetime.date(year=2016, month=2, day=5))
+
+        top = tk.Toplevel(root)
+
+        import datetime
+        today = datetime.date.today()
+
+        mindate = datetime.date(year=2018, month=1, day=21)
+        maxdate = today + datetime.timedelta(days=5)
+        print(mindate, maxdate)
+
+        cal = Calendar(top, font="Arial 14", selectmode='day', locale='en_US',
+                       mindate=mindate, maxdate=maxdate, disabledforeground='red',
+                       cursor="hand1", year=2018, month=2, day=5)
+        cal.pack(fill="both", expand=True)
+        ttk.Button(top, text="ok", command=print_sel).pack()
+
+    def example2():
+
+        top = tk.Toplevel(root)
+
+        cal = Calendar(top, selectmode='none', day=40)
+        date = cal.datetime.today() + cal.timedelta(days=2)
+        cal.calevent_create(date, 'Hello World', 'message')
+        cal.calevent_create(date, 'Reminder 2', 'reminder')
+        cal.calevent_create(date + cal.timedelta(days=-2),'Reminder 1', 'reminder')
+        cal.calevent_create(date + cal.timedelta(days=3), 'Message', 'message')
+
+        cal.tag_config('message', background='yellow', foreground='black')
+        cal.tag_config('reminder', background='red', foreground='yellow')
+
+        cal.pack(fill="both", expand=True)
+        ttk.Label(top, text="Hover over the events.").pack()
+
+    def print_sel(event):
+        print(cal.get_date())
+
+    def example3():
+        top = tk.Toplevel(root)
+
+        ttk.Label(top, text='Choose date').pack(padx=10, pady=10)
+        global cal
+        cal = DateEntry(top, width=12, background='darkblue',
+                        foreground='white', borderwidth=2)
+        cal.pack(padx=10, pady=10)
+        cal.bind("<<DateEntrySelected>>", print_sel)
+
+    root = tk.Tk()
+    ttk.Button(root, text='Calendar', command=example1).pack(padx=10, pady=10)
+    ttk.Button(root, text='Calendar with events',
+               command=example2).pack(padx=10, pady=10)
+    ttk.Button(root, text='DateEntry', command=example3).pack(padx=10, pady=10)
+    root.mainloop()

@@ -17,139 +17,161 @@ from Classes.MoneyParser import price_str, price_dec
 from Classes.DatabaseInterface import DatabaseInterface
 from Classes.UserAccount import UserAccount
 
-########################################################     Interface    ###########################################
-# Note to self: create another database for "unexpected_DB_changes_log" for instance, when the
-# balance is recalculated based on past orders and it doesn't match the balance saved to the profile
 
-
-class uiInterface:
+class UI_Interface:
     def __init__(self):
         self.UI_root = Tk()
         self.buffered_user_errors = []
         self.outputed_errors_list = []
         self.user_account = UserAccount()
 
-        self.image_filetypes = [
-            ('Image files', '*.png'),
-        ]
-
     def run(self):
-        self.log_in_ui()
+        self.log_in_UI()
 
-    def log_in_ui(self, **kw):
+    def log_in_UI(self, **kw):
         self.setup_new_window()
         self.UI_root.resizable(width=False, height=False)
         self.UI_root.title("Shared Power - Log in")
         self.add_menu_bar_1()
-
-        __inputPanel = PanedWindow(self.UI_root_frame, orient=HORIZONTAL)
-        __inputPanel.grid(row=0, column=1, padx=50, pady=20)
-
-        self.email_TKentry = StringVar()
-        self.password_TKentry = StringVar()
-
-        label_text_and_vars = [
-            ("Email: ", self.email_TKentry),
-            ("Password: #{type=pw", self.password_TKentry),
-        ]
-        self.generate_ui_label_and_entry(
-            __inputPanel, label_text_and_vars, entry_width=40)
-        if len(kw) > 0:
-            self.email_TKentry.set(kw.get('email', ''))
-            self.password_TKentry.set(kw.get('password', ''))
-
-        register_label_button = Label(
-            __inputPanel, text="Don't have an account? Click to Register", fg="#0400ff")
-        register_label_button.bind(
-            '<Button-1>', self.goto_register_user_menu)
-        register_label_button.grid(row=2, column=1, sticky="e")
-
+        # Parent
+        PWparent = PanedWindow(self.UI_root_frame, orient=HORIZONTAL)
+        PWparent.grid(row=0, column=1, padx=50, pady=20)
+        # StrVars
+        email_StrVar = StringVar()
+        password_StrVar = StringVar()
+        # Labels and Entries
+        self.generate_UI_label_and_entry(
+            PWparent, [
+            ("Email: ", email_StrVar),
+            ("Password: #{type=pw", password_StrVar),
+        ], entry_width=40)
+        # Register Button
+        registerB = Label(
+            PWparent,
+            text="Don't have an account? Click to Register",
+            fg="#0400ff"
+        )
+        registerB.bind('<Button-1>', self.goto_register_user_menu)
+        registerB.grid(row=2, column=1, sticky="e")
         # Button for submittion
-        Button(self.UI_root_frame, text="Log in", command=self.process_log_in).grid(
-            column=2, padx=20, pady=20, ipadx=10, ipady=5)
+        loginB = Button(
+            PWparent,
+            text="Log in",
+            command=self.process_log_in)
+        loginB.grid(column=2, padx=20, pady=20, ipadx=10, ipady=5)
+        # Class Variables
+        self.email = email_StrVar
+        self.password = password_StrVar
         # Bind return key
-
         def Return_keypressed(event):
             self.process_log_in()
         self.UI_root.bind('<Return>', Return_keypressed)
-        self.generate_ui_output_errors(self.UI_root_frame, starting_index=100)
+        # Generate any already existent errors
+        self.generate_UI_output_errors(PWparent, starting_index=100)
+        # This is usefull for automatic login:
+        if len(kw) > 0:
+            email_StrVar.set(kw.get('email', ''))
+            password_StrVar.set(kw.get('password', ''))
+            self.process_log_in()
         self.UI_root.mainloop()
 
     def process_log_in(self, **kw):
+        email, password = self.email.get(), self.password.get()
         self.clear_errors()
-        __email_address = self.email_TKentry.get()
-        __password = self.password_TKentry.get()
-        if not (self.user_account.does_email_exist(__email_address)):
+        if not (self.user_account.does_email_exist(email)):
             self.buffered_user_errors.append("Account not found")
         else:
-            if(self.user_account.check_password(__email_address, __password)):
+            if(self.user_account.check_password(email, password)):
                 __account_user_type = self.user_account.get_user_type()
-                self.menu_user_options_ui()
+                self.menu_user_options_UI()
             else:
                 self.buffered_user_errors.append("Wrong Password")
-        self.generate_ui_output_errors(self.UI_root_frame, starting_index=100)
+        self.generate_UI_output_errors(self.UI_root_frame, starting_index=100)
 
-    def register_user_ui(self):
+    def register_user_UI(self):
         self.setup_new_window()
         self.UI_root.resizable(width=False, height=False)
         self.UI_root.title("Shared Power - Register New User")
         self.add_menu_bar_2()
-
-        self.Label_Frame_Reg = self.add_label_frame(
-            self.UI_root_frame, "Register User", ipadx=50, ipady=30, padx=5, pady=5)
-
-        self.first_name_TKentry = StringVar()
-        self.surname_TKentry = StringVar()
-        self.phone_number_TKentry = StringVar()
-        self.post_code_TKentry = StringVar()
-        self.home_address_TKentry = StringVar()
-        self.email_TKentry = StringVar()
-        self.password_TKentry = StringVar()
-        self.confirm_password_TKentry = StringVar()
-
-        label_text_and_vars = [  # None = do not generate Entry, useful for different input widgets
-            ("First Name: ", self.first_name_TKentry),
-            ("Surname: ", self.surname_TKentry),
-            ("Phone Number: ", self.phone_number_TKentry),
+        # Parent
+        self.PWparent = PanedWindow(self.UI_root_frame, orient=HORIZONTAL)
+        # Define StrVars
+        first_name_StrVar = StringVar()
+        surname_StrVar = StringVar()
+        phone_number_StrVar = StringVar()
+        birthday_date_StrVar = StringVar()
+        post_code_StrVar = StringVar()
+        home_address_StrVar = StringVar()
+        email_StrVar = StringVar()
+        password_StrVar = StringVar()
+        confirm_password_StrVar = StringVar()
+        # Labels and Entries
+        self.generate_UI_label_and_entry(self.PWparent, [  # None = do not generate Entry, useful for different input widgets
+            ("First Name: ", first_name_StrVar),
+            ("Surname: ", surname_StrVar),
+            ("Phone Number: ", phone_number_StrVar),
             ("Date of Birth: ", None),
-            ("Post Code: ", self.post_code_TKentry),
-            ("Home Address:", self.home_address_TKentry),
-            ("Email: ", self.email_TKentry),
-            ("Password: #{type=pw", self.password_TKentry),
-            ("Confirm Password: #{type=pw", self.confirm_password_TKentry),
+            ("Post Code: ", post_code_StrVar),
+            ("Home Address:", home_address_StrVar),
+            ("Email: ", email_StrVar),
+            ("Password: #{type=pw", password_StrVar),
+            ("Confirm Password: #{type=pw", confirm_password_StrVar),
             ("User Type: ", None),
             ("User Photo: ", None)
-        ]
-        self.generate_ui_label_and_entry(
-            self.Label_Frame_Reg, label_text_and_vars)
-
-        # Custom calendar input widget
-        self.birthday_dateStrVar = StringVar()
-        self.add_date_entry(
-            self.Label_Frame_Reg, self.birthday_dateStrVar, row=3, column=1, columnspan=2, sticky=W)
-
-        self.user_type_IntVar = self.add_two_radio_buttons_get_var(
-            self.Label_Frame_Reg, "Tool User", "Tool Owner", row=9, sticky=W)
-
-        self.files_widget = GetImagesWidget(
-            self.Label_Frame_Reg, empty_message='Add Photo', max_items=1)
-        self.files_widget.grid(
-            row=10, column=1, columnspan=2, pady=4, sticky=W)
-
-        submit_button = Button(
-            self.Label_Frame_Reg, text="Register", command=self.process_register_new_user)
+        ])
+        # Date Entry
+        self.add_date_entry(self.PWparent, birthday_date_StrVar, row=3, column=1, columnspan=2, sticky=W)
+        # Radio Buttons
+        user_type_IntVar = self.add_two_radio_buttons_get_var(
+            self.PWparent,
+            "Tool User",
+            "Tool Owner",
+            row=9,
+            sticky=W
+        )
+        # Files Widget
+        self.files_widget = GetImagesWidget(self.PWparent, empty_message='Add Photo', max_items=1)
+        self.files_widget.grid(row=10, column=1, columnspan=2, pady=4, sticky=W)
+        # Class Variables:
+        Variables_Dict = {
+            "First_Name":first_name_StrVar,
+            "Surname":surname_StrVar,
+            "Phone_Number":phone_number_StrVar, 
+            "Date_of_Birth":birthday_date_StrVar,
+            "Home_Address":home_address_StrVar, 
+            "Post_Code":post_code_StrVar, 
+            "Email_Address": email_StrVar, 
+            "Password": password_StrVar, 
+            "Confirm_Password": confirm_password_StrVar, 
+            "Type_of_User": user_type_IntVar
+        }
+        # Register Button
+        submit_button = Button(self.PWparent, text="Register", command=lambda: self.process_register_new_user(**Variables_Dict))
         submit_button.grid(column=2, ipadx=10, ipady=5)
-
+        # Bind return key to proceed
         def Return_keypressed(event):
-            self.process_register_new_user()
+            self.process_register_new_user(**Variables_Dict)
         self.UI_root.bind('<Return>', Return_keypressed)
+        ###########
+        self.PWparent.grid(ipadx=50, ipady=30, padx=5, pady=5)
         self.UI_root.mainloop()
 
-    def process_register_new_user(self):
-        self.clear_errors()
-        self.validate_register_user_input()
-        if(len(self.buffered_user_errors) == 0):
-            reg_U_packed_images_db_list = self.get_images_from_file_widget(self.files_widget)
+    def process_register_new_user(self, **kw):
+        self.reg_U_first_name = str(kw.pop("First_Name").get())
+        self.reg_U_surname = str(kw.pop("Surname").get())
+        self.reg_U_phone_number = str(kw.pop("Phone_Number").get())
+        self.reg_U_birthday_date = str(kw.pop("Date_of_Birth").get())
+        self.reg_U_home_address = str(kw.pop("Home_Address").get())
+        self.reg_U_post_code = str(kw.pop("Post_Code").get())
+        self.reg_U_email = str(kw.pop("Email_Address").get())
+        self.reg_U_password = str(kw.pop("Password").get())
+        self.reg_U_confirm_password = kw.pop("Confirm_Password").get()
+        self.reg_U_type_of_user = int(kw.pop("Type_of_User").get())
+
+        self.clear_errors() # clear errors already displayed
+        self.validate_register_user_input() # buffers errors if any
+        if(len(self.buffered_user_errors) == 0): # checks buffer
+            reg_U_packed_images_db_list = self.get_images_from_widget(self.files_widget)
             self.user_account.register(
                 first_name=self.reg_U_first_name,
                 surname=self.reg_U_surname,
@@ -159,41 +181,15 @@ class uiInterface:
                 post_code=self.reg_U_post_code,
                 email=self.reg_U_email,
                 password=self.reg_U_password,
-                user_type="Tool_User" if self.reg_U_user_type == 1 else "Tool_Owner",
+                user_type="Tool_User" if self.reg_U_type_of_user == 1 else "Tool_Owner",
                 profile_photo=reg_U_packed_images_db_list
             )
-            self.log_in_ui()
+            self.log_in_UI()
         else:
-            self.generate_ui_output_errors(
-                self.Label_Frame_Reg, column=3, padx=50,  sticky=SE)
-
-    def get_images_from_file_widget(self, __wgt):
-        images_path_list = __wgt.get_PATHS()
-        images_db_list = ''
-        if not os.path.exists('Images'):
-            os.makedirs('Images')
-        for i in images_path_list:
-            destination = './Images/' + str(self.user_account.generate_unique_ID())
-            __extension = ''
-            for j in range(i.rindex('.'), len(i)):
-                    __extension += i[j]
-            destination+=__extension
-            shutil.copyfile(i, destination)
-            images_db_list+=destination + '#{@!#'
-        return images_db_list
-        
+            self.generate_UI_output_errors(
+                self.PWparent, column=3, padx=50,  sticky=SE)
 
     def validate_register_user_input(self):
-        self.reg_U_first_name = str(self.first_name_TKentry.get())
-        self.reg_U_surname = str(self.surname_TKentry.get())
-        self.reg_U_birthday_date = str(self.birthday_dateStrVar.get())
-        self.reg_U_home_address = str(self.home_address_TKentry.get())
-        self.reg_U_post_code = str(self.post_code_TKentry.get())
-        self.reg_U_email = str(self.email_TKentry.get())
-        self.reg_U_password = str(self.password_TKentry.get())
-        self.reg_U_confirm_password = self.confirm_password_TKentry.get()
-        self.reg_U_user_type = int(self.user_type_IntVar.get())
-
         if(self.reg_U_first_name == ""):
             self.buffered_user_errors.append("Please enter your first name")
         if(self.reg_U_surname == ""):
@@ -203,13 +199,13 @@ class uiInterface:
         if (self.reg_U_email.find("@") == -1):
             self.buffered_user_errors.append("Please enter a valid email")
         try:
-            __numberStr = self.phone_number_TKentry.get()
+            __numberStr = self.reg_U_phone_number
             if __numberStr == "":
                 self.buffered_user_errors.append("Please enter a phone number")
             self.reg_U_phone_number = int(__numberStr)
         except:
             self.buffered_user_errors.append("Please enter a valid phone number")
-        if self.reg_U_birthday_date == datetime.datetime.now().strftime('%d/%m/%Y'):
+        if self.reg_U_birthday_date == self.datetime_to_string(datetime.datetime.now()):
             self.buffered_user_errors.append("Please enter a valid date")
         if(self.reg_U_post_code == ""):
             self.buffered_user_errors.append("Please enter your postcode")
@@ -219,25 +215,20 @@ class uiInterface:
             self.buffered_user_errors.append("Passwords do not match")
         if not 8 <= len(self.reg_U_password) <= 32:
             self.buffered_user_errors.append("Please enter a password w/ 8 - 32 digits")
-        if (self.reg_U_user_type == 0):
+        if (self.reg_U_type_of_user == 0):
             self.buffered_user_errors.append("Please select the type of account")
 
-    def register_tool_ui(self):
+    def register_tool_UI(self):
         self.setup_new_window()
         self.UI_root.resizable(width=False, height=False)
         self.UI_root.title("Shared Power - Register New Tool")
         self.add_menu_bar_4()
-
-        self.Label_Frame_Reg = self.add_label_frame(
-            self.UI_root_frame, "Register Tool", ipadx=50, ipady=30, padx=5, pady=5)
-
+        self.PWparent = LabelFrame(self.UI_root_frame, text="Register Tool")
+        # Labels and entries
         self.tool_name = StringVar()
         self.half_day_rate = StringVar()
         self.full_day_rate = StringVar()
-        self.post_code_TKentry = StringVar()
-        self.home_address_TKentry = StringVar()
-
-        label_text_and_vars = [  # None = do not generate Entry, useful for different input widgets
+        self.generate_UI_label_and_entry(self.PWparent, [  # None = do not generate Entry, useful for different input widgets
             ("Tool Name: ", self.tool_name),
             ("Description: ", None),
             ("Half day rate: ", self.half_day_rate),
@@ -245,62 +236,57 @@ class uiInterface:
             ("Availablity start date: ", None),
             ("Availablity end date: ", None),
             ("Choose Photo: ", None),
-
-        ]
-        self.generate_ui_label_and_entry(
-            self.Label_Frame_Reg, label_text_and_vars)
+        ])
         self.description_text_box = Text(
-            self.Label_Frame_Reg, wrap=WORD, height=10, width=80)
+            self.PWparent, wrap=WORD, height=10, width=80)
         self.description_text_box.grid(row=1, column=1, columnspan=5)
-
-        # Custom calendar input widget
+        # Start date Widget
         self.availability_start_date_StrVar = StringVar()
         self.add_date_entry(
-            self.Label_Frame_Reg, self.availability_start_date_StrVar, row=4, column=1, columnspan=2, sticky=W)
+            self.PWparent, self.availability_start_date_StrVar, row=4, column=1, columnspan=2, sticky=W)
+        # End date Widget
         self.availability_end_date_StrVar = StringVar()
         self.add_date_entry(
-            self.Label_Frame_Reg, self.availability_end_date_StrVar, row=5, column=1, columnspan=2, sticky=W)
-        self.file_name = ''
-
-        
-        self.files_widget = GetImagesWidget(self.Label_Frame_Reg, empty_message='Add Photo', max_items=5)
+            self.PWparent, self.availability_end_date_StrVar, row=5, column=1, columnspan=2, sticky=W)
+        # Get Photo Widget
+        self.files_widget = GetImagesWidget(self.PWparent, empty_message='Add Photo', max_items=5)
         self.files_widget.grid(row=6, column=1, columnspan=2, sticky=W)
-
-        Button(self.Label_Frame_Reg, text="Register", command=self.process_register_new_tool).grid(
-            column=5, ipadx=10, ipady=5)    
+        # Register Button
+        __registerB = Button(self.PWparent, text="Register", command=self.process_register_or_update_tool)
+        __registerB.grid(column=5, ipadx=10, ipady=5)    
         
-
-
+        self.PWparent.grid(ipadx=50, ipady=30, padx=5, pady=5)
+        self.go_back_menu = self.menu_user_options_UI
         self.UI_root.mainloop()
 
-    def process_register_new_tool(self):  # TODO TODO TODO
+    def process_register_or_update_tool(self):  # TODO TODO TODO
         self.validate_register_tool_input()
-
+        reg_T_availability_list = [
+            str(self.availability_start_date_StrVar.get()),
+            str(self.availability_end_date_StrVar.get())
+        ]
         if(len(self.buffered_user_errors) == 0):
             self.clear_errors()
-            reg_T_packed_images_db_list = self.get_images_from_file_widget(self.files_widget)
+            reg_T_packed_images_db_list = self.get_images_from_widget(self.files_widget)
             self.user_account.register_tool(
                 item_name=self.reg_T_tool_name,
                 half_day_fee=self.get_savable_int_price(self.reg_T_half_day_rate),
                 full_day_fee=self.get_savable_int_price(self.reg_T_full_day_rate),
                 description=self.reg_T_description,
-                availability=self.get_packed_availability_dates(),
+                availability=self.get_packed_availability_dates(reg_T_availability_list),
                 photos=reg_T_packed_images_db_list
             )
             self.go_back_menu()
         else:
             self.clear_errors()
-            self.generate_ui_output_errors(
-                self.Label_Frame_Reg, column=0, starting_index=100, padx=50,  sticky=SE)
+            self.generate_UI_output_errors(
+                self.PWparent, column=0, starting_index=100, padx=50,  sticky=SE)
 
     def validate_register_tool_input(self):
         self.reg_T_tool_name = str(self.tool_name.get())
         self.reg_T_description = str(self.description_text_box.get("1.0", 'end-1c'))
         self.reg_T_half_day_rate = str(self.half_day_rate.get())
         self.reg_T_full_day_rate = str(self.full_day_rate.get())
-        self.reg_T_availability_list = []
-        self.reg_T_availability_list.append(str(self.availability_start_date_StrVar.get()))
-        self.reg_T_availability_list.append(str(self.availability_end_date_StrVar.get()))
 
         if(self.reg_T_tool_name == ""):
             self.buffered_user_errors.append(
@@ -330,8 +316,8 @@ class uiInterface:
         #     self.buffered_user_errors.append(
         #         "Please Enter a Valid Date")
 
-    def get_packed_availability_dates(self):
-        __list = self.reg_T_availability_list
+    def get_packed_availability_dates(self, reg_T_availability_list):
+        __list = reg_T_availability_list
         __reg_T_availability_str_pack = __list[0]
         for __date in __list:
             __reg_T_availability_str_pack += '#' + __date
@@ -344,7 +330,16 @@ class uiInterface:
             unpacked_dates.append(i.strip('#'))
         return unpacked_dates
 
-    def generate_ui_label_and_entry(self, __widget, __list, **kw):
+    def get_date_pair_list(self, unpacked_dates):
+        pair_list = []
+        for i in range(0, len(unpacked_dates)-1, 2):
+            start_date = unpacked_dates[i]
+            end_date = unpacked_dates[i+1]
+            pair_list.append((self.string_to_datetime(start_date), self.string_to_datetime(end_date)))
+        return pair_list
+
+
+    def generate_UI_label_and_entry(self, __widget, __list, **kw):
         __label_padx = kw.pop('label_width', 20)
         __entry_width = kw.pop('entry_width', 25)
 
@@ -384,7 +379,7 @@ class uiInterface:
         return label_list, entries_list
             
 
-    def generate_ui_output_errors(self, __widget, **kw):
+    def generate_UI_output_errors(self, __widget, **kw):
         __buffered_errors = self.get_buffered_user_errors()
         __start_on = kw.pop('starting_index', 0)
         for __line in __buffered_errors:
@@ -398,7 +393,7 @@ class uiInterface:
 
             self.outputed_errors_list.append(__label)
 
-    def generate_ui_functions_menu(self, __widget, __list, **kw):
+    def generate_UI_functions_menu(self, __widget, __list, **kw):
         __label_padx = kw.pop('label_width', 20)
         __entry_width = kw.pop('entry_width', 25)
         for __line in __list:
@@ -416,8 +411,18 @@ class uiInterface:
                 __button.grid(kw)
 
     def add_date_entry(self, __widget, __var, **kw):
-        __date_entry = DateEntry(__widget, width=22, background='darkblue',
-                                 foreground='white', textvariable=__var, date_pattern='d/m/yyyy', borderwidth=2)
+        de_kw = {}
+        _date = kw.pop("date", "default")
+        if _date != "default":
+            de_kw["day"]=_date.day
+            de_kw["month"]=_date.month
+            de_kw["year"]=_date.year
+        _mindate = kw.pop("mindate", "")
+        _maxdate = kw.pop("maxdate", "")
+        if _mindate != "" and _maxdate!="":
+            de_kw["mindate"]=_mindate
+            de_kw["maxdate"]=_max
+        __date_entry = DateEntry(__widget, width=22, textvariable=__var, date_pattern='d/m/yyyy', **de_kw)
         __date_entry.grid(kw)
         return __date_entry
 
@@ -428,9 +433,9 @@ class uiInterface:
 
     def add_two_radio_buttons_get_var(self, __widget, __textB1, __textB2, **kw):
         __user_type_input = IntVar()
-        __radio_button1 = Radiobutton(self.Label_Frame_Reg, text="Tool User", variable=__user_type_input,
+        __radio_button1 = Radiobutton(self.PWparent, text="Tool User", variable=__user_type_input,
                                       value=1)
-        __radio_button2 = Radiobutton(self.Label_Frame_Reg, text="Tool Owner", variable=__user_type_input,
+        __radio_button2 = Radiobutton(self.PWparent, text="Tool Owner", variable=__user_type_input,
                                       value=2)
         kw['column'] = 1
         __radio_button1.grid(kw)
@@ -443,7 +448,7 @@ class uiInterface:
             __l.destroy()
 
 
-    def menu_user_options_ui(self):
+    def menu_user_options_UI(self):
         self.setup_new_window()
         self.UI_root.resizable(width=False, height=False)
 
@@ -457,22 +462,22 @@ class uiInterface:
                 ("Search for tools", None),
                 ("View current orders", None),
                 ("View next Invoice", None),
-                ("Log Out", self.log_in_ui),
+                ("Log Out", self.log_in_UI),
             ]
         elif (__account_user_type == "Tool_Owner"):
             button_text_and_functions = [
-                ("Register tool", self.register_tool_ui),
+                ("Register tool", self.register_tool_UI),
                 ("View Listed Inventory", self.menu_view_listed_inventory),
                 ("Search for tools", None),
                 ("View current orders", None),
                 ("View Purchase History", None),
                 ("View next Invoice", None),
-                ("Log Out", self.log_in_ui),
+                ("Log Out", self.log_in_UI),
             ]
         else:
             self.buffered_user_errors.append("Database Error - Type of User Unknown")  
-            self.log_in_ui()
-        self.generate_ui_functions_menu(self.UI_root_frame, button_text_and_functions)
+            self.log_in_UI()
+        self.generate_UI_functions_menu(self.UI_root_frame, button_text_and_functions)
 
         
         returned_images = self.get_db_images(self.user_account.fetched_user_dictionary, 'Profile_Photo', 4)
@@ -536,7 +541,7 @@ class uiInterface:
     def add_menu_bar_2(self):   # used for Register Screen
         self.menubar = Menu(self.UI_root)
         __submenu = Menu(self.menubar, tearoff=0)
-        __submenu.add_command(label="Go Back", command=self.log_in_ui)
+        __submenu.add_command(label="Go Back", command=self.log_in_UI)
         __submenu.add_command(label="Quit", command=self.quit)
         self.menubar.add_cascade(label="Options", menu=__submenu)
         self.UI_root.config(menu=self.menubar)
@@ -544,7 +549,7 @@ class uiInterface:
     def add_menu_bar_3(self):   # used for the tool users/owners UI
         self.menubar = Menu(self.UI_root)
         __submenu = Menu(self.menubar, tearoff=0)
-        __submenu.add_command(label="Log Out", command=self.log_in_ui)
+        __submenu.add_command(label="Log Out", command=self.log_in_UI)
         __submenu.add_command(label="Quit", command=self.quit)
         self.menubar.add_cascade(label="Options", menu=__submenu)
         self.UI_root.config(menu=self.menubar)
@@ -568,7 +573,7 @@ class uiInterface:
         pass  # TODO
 
     def menu_view_listed_inventory(self):  # TODO
-        self.go_back_menu = self.menu_user_options_ui
+        self.go_back_menu = self.menu_user_options_UI
         self.setup_new_window()
         self.UI_root.resizable(width=False, height=True)
         self.UI_root.title("Shared Power - View Stock Inventory")
@@ -665,71 +670,97 @@ class uiInterface:
         self.add_menu_bar_4()
         print(tool_information_dict)
         availability = self.get_unpacked_dates(tool_information_dict.get("Availability", []))
+        availability_pair_dict = self.get_date_pair_list(availability)
+        
 
 
-        self.Label_Frame_Reg = self.add_label_frame(
+        self.PWparent = self.add_label_frame(
             self.UI_root_frame, "Edit Tool", ipadx=50, ipady=30, padx=5, pady=5)
 
         self.tool_name = StringVar()
         self.half_day_rate = StringVar()
         self.full_day_rate = StringVar()
-        self.post_code_TKentry = StringVar()
-        self.availability_start_date_TKentry = StringVar()
-        self.availability_end_date_TKentry = StringVar()
+        self.post_code_StrVar = StringVar()
+        self.availability_start_date_StrVar = StringVar()
+        self.availability_end_date_StrVar = StringVar()
 
         label_text_and_vars = [  # None = do not generate Entry, useful for different input widgets
             ("Tool Name:", self.tool_name),#0
             ("Description:", None),#1
             ("Half day rate:", self.half_day_rate),#2
             ("Full Day Rate:", self.full_day_rate),#3
-            ("Availability start date:", self.availability_start_date_TKentry),#4
+            ("Availability start date:", None),#4
             ("Availablity end date:", None),#5
             ("Dates Booked:", None),#6
             ("Choose Photo:", None),#7
 
         ]
-        label_list, entries_list = self.generate_ui_label_and_entry(
-            self.Label_Frame_Reg, label_text_and_vars)
+        label_list, entries_list = self.generate_UI_label_and_entry(
+            self.PWparent, label_text_and_vars)
         # Fill the empty entries 
         entries_list[0].insert(0,tool_information_dict.get("Item_Name"))
         entries_list[2].insert(0,self.get_displayable_price(tool_information_dict.get("Half_Day_Fee")))
         entries_list[3].insert(0,self.get_displayable_price(tool_information_dict.get("Full_Day_Fee")))
-        entries_list[4].insert(0,availability[len(availability)-1])
+
 
         # description textbox
-        item_description = Text(self.Label_Frame_Reg, wrap=WORD, height=10, width=80)
+        item_description = Text(self.PWparent, wrap=WORD, height=10, width=80)
         item_description.grid(row=1, column=1, columnspan=5)
-        _desc = tool_information_dict.get('Description', "error")
+        _desc = tool_information_dict.get('Description', "error").replace('\\n', ' \n')
         item_description.insert('end', _desc)
-        # Custom calendar input widget
         
-        self.availability_end_date_StrVar = StringVar()
-        self.add_date_entry(
-            self.Label_Frame_Reg, self.availability_end_date_StrVar, row=5, column=1, columnspan=2, sticky=W)
-        
-        self.dates_booked = StringVar()
-        self.add_date_entry(
-            self.Label_Frame_Reg, self.dates_booked, row=6, column=1, columnspan=2, sticky=W)
-        
+        # Date entry start date
+        availability_start_date= availability_pair_dict[0][0]
+        self.availability_start_date_str = StringVar()
+        start_dateentry = self.add_date_entry(
+            self.PWparent, self.availability_start_date_str, row=4, column=1, columnspan=2, sticky=W, date=availability_start_date)
+        if availability_start_date<datetime.datetime.now(): 
+            start_dateentry.config(state=DISABLED)
+            Label(self.PWparent, text="Not editable if tool was already available").grid(row=4, column=3, sticky=W)
+
+        # Date entry end date
+        availability_end_date= availability_pair_dict[len(availability_pair_dict)-1][1]
+        self.availability_end_date_str = StringVar()
+        end_dateentry = self.add_date_entry(
+            self.PWparent, self.availability_end_date_str, row=5, column=1, columnspan=2, sticky=W, date=availability_end_date)
+        if len(availability)>2:
+            end_dateentry.config(state=DISABLED)
+            Label(self.PWparent, text="Not editable if tool was already booked").grid(row=5, column=3, sticky=W)
+            
+
+        # View bookings
+        Button(self.PWparent, text='View Bookings',command=lambda: self.view_bookings_UI(availability_pair_dict)).grid(row=6, column=1, columnspan=2, sticky=W)
+
         # Custom GetImagesWidget
-        self.files_widget = GetImagesWidget(self.Label_Frame_Reg, empty_message='Add Photo', max_items=5)
+        self.files_widget = GetImagesWidget(self.PWparent, empty_message='Add Photo', max_items=5)
         self.files_widget.grid(row=7, column=1, columnspan=2, sticky=W)
         self.files_widget.automatic__file_input(images_path_list)
 
-        
-        
-        # create a calendar with events
 
-        #######
-        Button(self.Label_Frame_Reg, text="Update Tool Information", command=self.process_register_new_tool).grid(
+        # Buttons
+        Button(self.PWparent, text="Update Tool Information", command=self.process_register_or_update_tool).grid(
             column=5, ipadx=10, ipady=5, sticky='e')
-        Button(self.Label_Frame_Reg, text="Remove Tool Listing", command=self.process_register_new_tool).grid(
+        Button(self.PWparent, text="Remove Tool Listing", command=self.process_register_or_update_tool).grid(
             column=5, ipadx=10, ipady=5, sticky='e') 
         
 
 
         # must check for the difference in images added in the actual process
         self.UI_root.mainloop()
+
+    def view_bookings_UI(self, availability_Pair_dict):
+            booked_dates = list(tuple(availability_Pair_dict))
+            startday, endday = booked_dates.pop(0)
+            top = Toplevel(self.UI_root)
+            cal = Calendar(top, selectmode='none', date_pattern='d/m/yyyy', day=startday.day, month=startday.month, year=startday.year)
+            # , mindate=availability_start_date,maxdate=availability_end_date  # this was removed because mindate and maxdate are broken
+            for dates in booked_dates:
+                start_date, end_date = dates
+                for i in range(0, (end_date-start_date).days+1):
+                    date = start_date + cal.timedelta(days=i)
+                    cal.calevent_create(date, 'Booked', 'booked')
+            cal.tag_config('booked', background='red', foreground='yellow')
+            cal.pack(fill="both", expand=True)
 
     def menu_view_current_orders(self):
         pass  # TODO
@@ -752,7 +783,7 @@ class uiInterface:
 
 
     def goto_register_user_menu(self, event):
-        self.register_user_ui()
+        self.register_user_UI()
 
     def get_all_children(self):
         __list = self.UI_root.winfo_children()
@@ -776,17 +807,37 @@ class uiInterface:
         self.buffered_user_errors.clear()
         return buffered_errors
 
+    def get_images_from_widget(self, __wgt):
+        images_path_list = __wgt.get_PATHS()
+        images_db_list = ''
+        if not os.path.exists('Images'):
+            os.makedirs('Images')
+        for i in images_path_list:
+            destination = './Images/' + str(self.user_account.generate_unique_ID())
+            __extension = ''
+            for j in range(i.rindex('.'), len(i)):
+                    __extension += i[j]
+            destination+=__extension
+            shutil.copyfile(i, destination)
+            images_db_list+=destination + '#{@!#'
+        return images_db_list # returns a single string with all paths, ready to be saved on a DB
+
     def get_savable_int_price(self, __price):
         return int(float(price_str(__price))*100)
     
     def get_displayable_price(self, __price):
         return "£ "+str(price_dec(str(float(__price)/100)))
 
+    def datetime_to_string(self, _datetime: datetime.datetime):
+        return _datetime.strftime('%d/%m/%Y')
+
+    def string_to_datetime(self, _string: str):
+        return datetime.datetime.strptime(_string, '%d/%m/%Y')
 
     ########################################################    Main Program    ###########################################
 
 
 if __name__ == '__main__':
-    program = uiInterface()
+    program = UI_Interface()
     # program.run()
-    program.log_in_ui(email="test@test", password = "123456789") # Just to TEST
+    program.log_in_UI(email="test@test", password = "123456789") # Just to TEST
