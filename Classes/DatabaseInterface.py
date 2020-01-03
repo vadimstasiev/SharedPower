@@ -100,8 +100,7 @@ class DatabaseInterface:
                     __option = {
                         int: " INTEGER ",
                         float: " REAL ",
-                        str: " TEXT ",
-                        Image: "BLOB"
+                        str: " TEXT "
                     }[__databaseColumnList[__j]]
                     __localWorkingTypeStrList.extend([__option])
                 except:

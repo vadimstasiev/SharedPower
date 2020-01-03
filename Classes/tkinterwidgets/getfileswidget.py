@@ -28,8 +28,10 @@ class GetFilesWidget(Frame):
         self.ftypes = kwargs.pop('file_types', [])
         Frame.__init__(self, master, **kwargs)
         self.fileFrameList = []
+        self.filePathButtonList = []
         self.files_name_str_list = []
         self.files_path_str_list = []
+        self._original_SET_list = []  # to be compared with files_path_str_list for changes
         self.add_button = Button(self, text="+", command=self.place__fileFrame)
         self.place__fileFrame()
 
@@ -46,6 +48,7 @@ class GetFilesWidget(Frame):
         fileFrame = Frame(self)
         self.fileFrameList.append(fileFrame)
         filepath_button = PathButton(fileFrame, text=self.empty_message)
+        self.filePathButtonList.append(filepath_button)
         filepath_button.config(
             command=lambda: self.onclick_get_filename(fileFrame, filepath_button))
         filepath_button.grid(sticky="w")
@@ -56,7 +59,18 @@ class GetFilesWidget(Frame):
             __i += 1
         self.refresh__ADD_button()
 
-    def onclick_get_filename(self, parent, filepath_button: Button):
+    def automatic__file_input(self, files):
+        if files[len(files)-1] == "":
+            files.pop()
+        for i in range(0, len(files)-1):
+            self.place__fileFrame()
+        fileFrameANDpathbuttonList = zip(
+            self.fileFrameList, self.filePathButtonList, files)
+        for fileFrameANDpathbutton in fileFrameANDpathbuttonList:
+            fileFrame, pathbutton, file = fileFrameANDpathbutton
+            self.set_filename(fileFrame, pathbutton, file)
+
+    def onclick_get_filename(self, parent, filepath_button: PathButton):
         file_obtained_Bool = False
         __text = filepath_button.cget('text')
         if __text == self.empty_message:
@@ -80,13 +94,29 @@ class GetFilesWidget(Frame):
                     "Error", "This file or a file with the same name was already added")
         return file_obtained_Bool
 
-    def place__DEL_button(self, parent, filepath_button: Button):
+    def set_filename(self, parent, filepath_button: PathButton, filepath):
+        self.current_filepath = filepath
+        display_text = filepath[filepath.rfind('/')+1:]
+        if display_text != "" and display_text not in self.files_name_str_list:
+            self.files_path_str_list.append(filepath)
+            self.files_name_str_list.append(display_text)
+            self._original_SET_list.append(filepath)
+            filepath_button.path_holder = filepath
+            filepath_button.filename_holder = display_text
+            filepath_button.config(text=display_text)
+        elif(filepath == ""):
+            pass
+        else:
+            messagebox.showerror(
+                "Error", "This file or a file with the same name was already added")
+
+    def place__DEL_button(self, parent, filepath_button: PathButton):
         del_button = Button(parent, text="-")
         del_button.config(command=lambda: self.onclick_DEL(
             parent, filepath_button))
         del_button.grid(row=0, column=1, sticky='ns')
 
-    def onclick_DEL(self, parent, filepath_button: Button):
+    def onclick_DEL(self, parent, filepath_button: PathButton):
         if parent != self.fileFrameList[0]:
             self.fileFrameList.remove(parent)
             parent.destroy()
@@ -99,6 +129,23 @@ class GetFilesWidget(Frame):
             pass
         self.refresh__ADD_button()
 
+    def get_difference(self):
+        self.files_path_str_list == self._original_SET_list
+        added = []
+        for i in self.files_path_str_list:
+            if i not in self._original_SET_list:
+                added.append(i)
+        removed = []
+        for j in self._original_SET_list:
+            if j not in self.files_path_str_list:
+                removed.append(j)
+        return removed, added
+
+    def are_same_files(self, file1, file2):
+        file1 = file1[file1.rfind('/')+1:]
+        file2 = file2[file2.rfind('/')+1:]
+        return file1 == file2
+
     def get_PATHS(self):
         return self.files_path_str_list
 
@@ -106,25 +153,42 @@ class GetFilesWidget(Frame):
 class GetImagesWidget(GetFilesWidget):
     def __init__(self, master, **kwargs):
         self.image_references = []
+        self.removed_items = []
         GetFilesWidget.__init__(self, master, **kwargs)
         self.ftypes = [
             ('Image files', '*.png'),
         ]
 
-    def onclick_get_filename(self, parent, filepath_button: Button):
+    def onclick_get_filename(self, parent, filepath_button: PathButton):
         if GetFilesWidget.onclick_get_filename(self, parent, filepath_button) == True:
             photo = PhotoImage(file=self.current_filepath)
-            displayable_image = photo.subsample(4, 4)
-
+            displayable_image = photo.subsample(4)
             self.image_references.append(displayable_image)
             filepath_button.config(image=displayable_image)
 
-    def onclick_DEL(self, parent, filepath_button: Button):
+    def set_filename(self, parent, filepath_button: PathButton, filepath):
+        GetFilesWidget.set_filename(self, parent, filepath_button, filepath)
+        try:
+            photo = PhotoImage(file=self.current_filepath)
+            displayable_image = photo.subsample(4)
+            self.image_references.append(displayable_image)
+            filepath_button.config(image=displayable_image)
+        except:
+            self.onclick_DEL(parent, filepath_button)
+
+    def onclick_DEL(self, parent, filepath_button: PathButton):
         filepath_button.config(image="")
         GetFilesWidget.onclick_DEL(self, parent, filepath_button)
+        self.removed_items.append(filepath_button.path_holder)
 
 
 if __name__ == "__main__":
     root = Tk()
-    GetImagesWidget(root).grid(padx=100, pady=100)
+    mywidget = GetImagesWidget(root)
+    mywidget.grid(padx=100, pady=100)
+    myFiles = [
+        "./random.png",     # these files must be accessible in order to show up
+        "./Empty.png"
+    ]
+    mywidget.automatic__file_input(myFiles)
     root.mainloop()

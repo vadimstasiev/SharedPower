@@ -4,3 +4,4 @@ venv
 *.db
 *.json
 *.jpg
+*.png

@@ -5,8 +5,7 @@ import uuid
 import bcrypt
 from tkinter import Image  # for the image type
 
-from abc import ABC, abstractmethod
-
+#from abc import ABC, abstractmethod
 
 # Local Imports
 try:
@@ -15,7 +14,7 @@ except:
     pass
 
 
-class UserClass():
+class UserAccount():
 
     def __init__(self):
         self.user_class_error_buffer = []
@@ -34,7 +33,7 @@ class UserClass():
             "Password_Hash", str,
             "Outstanding_Balance", int,
             "Type_of_User", str,
-            "Profile_Photo", Image
+            "Profile_Photo", str
         )
         self.user_details_table = "User_Details"
         self.User_Details_Table_Index = self.dbInterface.create_table_from_tuple(
@@ -63,7 +62,7 @@ class UserClass():
             "Availability", str,
             "Item_Process_State", str,
             "User_ID", int,
-            "Tool_Photos", Image
+            "Tool_Photos", str
         )
         self.inventory_table = "Tool_Inventory"
         self.Inventory_Table_Index = self.dbInterface.create_table_from_tuple(
@@ -76,7 +75,7 @@ class UserClass():
     def register(self, **kw):
         self.dbInterface.select_table(self.user_details_table)
         __password_hash = self.generate_hashed_password(
-            kw.pop("password", "123456789"))
+            kw.pop("password", "None"))
         user_details = (
             str(self.generate_unique_ID()),
             kw.pop("first_name", "None"),
@@ -85,11 +84,11 @@ class UserClass():
             kw.pop("phone_number", 0),
             kw.pop("home_address", "None"),
             kw.pop("post_code", "None"),
-            kw.pop("email", "test@test"),
+            kw.pop("email", "None"),
             __password_hash,
             kw.pop("outstanding_balance", 0),
             kw.pop("user_type", "Tool_Owner"),
-            kw.pop("profile_photo", 0),
+            kw.pop("profile_photo", ""),
         )
         if len(kw) > 1:
             self.user_class_error_buffer(
@@ -107,7 +106,7 @@ class UserClass():
             kw.pop("availability", ""),
             kw.pop("item_process_state", "With Owner"),
             self.fetched_user_dictionary.get('Unique_User_ID'),
-            kw.pop("photos", 0)
+            kw.pop("photos", "")
         )
         if len(kw) > 1:
             self.user_class_error_buffer(
@@ -118,6 +117,7 @@ class UserClass():
         return self.update_fetched_user_details(__user_email)
 
     def update_fetched_user_details(self, __user_email: str):
+        user_details_updated_b = False
         try:
             self.dbInterface.select_table(self.user_details_table)
             __list_line_results = self.dbInterface.fetch_lines_from_db(
@@ -126,12 +126,15 @@ class UserClass():
             __fetched_user_details = __list_line_results[0]
             self.fetched_user_dictionary = dict(
                 zip(self.User_Details_Table_Index, __fetched_user_details))
-            print(self.fetched_user_dictionary)
+            # print(self.fetched_user_dictionary)
+            user_details_updated_b = True
             if(len(__list_line_results) > 1):
-                print("Database ERROR - There is more than 1 match for the given email")
-            return True
+                self.dbInterface.db_class_error_buffer.append(
+                    "Database ERROR - There is more than 1 match for the given email")
+                user_details_updated_b = False
         except:
-            return False
+            pass
+        return user_details_updated_b
 
     def fetch_user_listed_inventory(self):
         self.dbInterface.select_table(self.inventory_table)
