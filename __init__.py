@@ -94,7 +94,7 @@ class UI_Interface:
         self.UI_root.title("Shared Power - Register New User")
         self.add_menu_bar_2()
         # Parent
-        self.PWparent = PanedWindow(self.UI_root_frame, orient=HORIZONTAL)
+        PWparent = PanedWindow(self.UI_root_frame, orient=HORIZONTAL)
         # Define StrVars
         first_name_StrVar = StringVar()
         surname_StrVar = StringVar()
@@ -106,7 +106,7 @@ class UI_Interface:
         password_StrVar = StringVar()
         confirm_password_StrVar = StringVar()
         # Labels and Entries
-        self.generate_UI_label_and_entry(self.PWparent, [  # None = do not generate Entry, useful for different input widgets
+        self.generate_UI_label_and_entry(PWparent, [  # None = do not generate Entry, useful for different input widgets
             ("First Name: ", first_name_StrVar),
             ("Surname: ", surname_StrVar),
             ("Phone Number: ", phone_number_StrVar),
@@ -120,17 +120,17 @@ class UI_Interface:
             ("User Photo: ", None)
         ])
         # Date Entry
-        self.add_date_entry(self.PWparent, birthday_date_StrVar, row=3, column=1, columnspan=2, sticky=W)
+        self.add_date_entry(PWparent, birthday_date_StrVar, row=3, column=1, columnspan=2, sticky=W)
         # Radio Buttons
         user_type_IntVar = self.add_two_radio_buttons_get_var(
-            self.PWparent,
+            PWparent,
             "Tool User",
             "Tool Owner",
             row=9,
             sticky=W
         )
         # Files Widget
-        self.files_widget = GetImagesWidget(self.PWparent, empty_message='Add Photo', max_items=1)
+        self.files_widget = GetImagesWidget(PWparent, empty_message='Add Photo', max_items=1)
         self.files_widget.grid(row=10, column=1, columnspan=2, pady=4, sticky=W)
         # Class Variables:
         Variables_Dict = {
@@ -146,14 +146,14 @@ class UI_Interface:
             "Type_of_User": user_type_IntVar
         }
         # Register Button
-        submit_button = Button(self.PWparent, text="Register", command=lambda: self.process_register_new_user(**Variables_Dict))
+        submit_button = Button(PWparent, text="Register", command=lambda: self.process_register_new_user(**Variables_Dict))
         submit_button.grid(column=2, ipadx=10, ipady=5)
         # Bind return key to proceed
         def Return_keypressed(event):
             self.process_register_new_user(**Variables_Dict)
         self.UI_root.bind('<Return>', Return_keypressed)
         ###########
-        self.PWparent.grid(ipadx=50, ipady=30, padx=5, pady=5)
+        PWparent.grid(ipadx=50, ipady=30, padx=5, pady=5)
         self.UI_root.mainloop()
 
     def process_register_new_user(self, **kw):
@@ -187,7 +187,7 @@ class UI_Interface:
             self.log_in_UI()
         else:
             self.generate_UI_output_errors(
-                self.PWparent, column=3, padx=50,  sticky=SE)
+                PWparent, column=3, padx=50,  sticky=SE)
 
     def validate_register_user_input(self):
         if(self.reg_U_first_name == ""):
@@ -223,12 +223,12 @@ class UI_Interface:
         self.UI_root.resizable(width=False, height=False)
         self.UI_root.title("Shared Power - Register New Tool")
         self.add_menu_bar_4()
-        self.PWparent = LabelFrame(self.UI_root_frame, text="Register Tool")
+        PWparent = LabelFrame(self.UI_root_frame, text="Register Tool")
         # Labels and entries
         self.tool_name = StringVar()
         self.half_day_rate = StringVar()
         self.full_day_rate = StringVar()
-        self.generate_UI_label_and_entry(self.PWparent, [  # None = do not generate Entry, useful for different input widgets
+        self.generate_UI_label_and_entry(PWparent, [  # None = do not generate Entry, useful for different input widgets
             ("Tool Name: ", self.tool_name),
             ("Description: ", None),
             ("Half day rate: ", self.half_day_rate),
@@ -238,24 +238,24 @@ class UI_Interface:
             ("Choose Photo: ", None),
         ])
         self.description_text_box = Text(
-            self.PWparent, wrap=WORD, height=10, width=80)
+            PWparent, wrap=WORD, height=10, width=80)
         self.description_text_box.grid(row=1, column=1, columnspan=5)
         # Start date Widget
         self.availability_start_date_StrVar = StringVar()
         self.add_date_entry(
-            self.PWparent, self.availability_start_date_StrVar, row=4, column=1, columnspan=2, sticky=W)
+            PWparent, self.availability_start_date_StrVar, row=4, column=1, columnspan=2, sticky=W)
         # End date Widget
         self.availability_end_date_StrVar = StringVar()
         self.add_date_entry(
-            self.PWparent, self.availability_end_date_StrVar, row=5, column=1, columnspan=2, sticky=W)
+            PWparent, self.availability_end_date_StrVar, row=5, column=1, columnspan=2, sticky=W)
         # Get Photo Widget
-        self.files_widget = GetImagesWidget(self.PWparent, empty_message='Add Photo', max_items=5)
+        self.files_widget = GetImagesWidget(PWparent, empty_message='Add Photo', max_items=5)
         self.files_widget.grid(row=6, column=1, columnspan=2, sticky=W)
         # Register Button
-        __registerB = Button(self.PWparent, text="Register", command=self.process_register_or_update_tool)
+        __registerB = Button(PWparent, text="Register", command=self.process_register_or_update_tool)
         __registerB.grid(column=5, ipadx=10, ipady=5)    
         
-        self.PWparent.grid(ipadx=50, ipady=30, padx=5, pady=5)
+        PWparent.grid(ipadx=50, ipady=30, padx=5, pady=5)
         self.go_back_menu = self.menu_user_options_UI
         self.UI_root.mainloop()
 
@@ -280,7 +280,7 @@ class UI_Interface:
         else:
             self.clear_errors()
             self.generate_UI_output_errors(
-                self.PWparent, column=0, starting_index=100, padx=50,  sticky=SE)
+                PWparent, column=0, starting_index=100, padx=50,  sticky=SE)
 
     def validate_register_tool_input(self):
         self.reg_T_tool_name = str(self.tool_name.get())
@@ -433,9 +433,9 @@ class UI_Interface:
 
     def add_two_radio_buttons_get_var(self, __widget, __textB1, __textB2, **kw):
         __user_type_input = IntVar()
-        __radio_button1 = Radiobutton(self.PWparent, text="Tool User", variable=__user_type_input,
+        __radio_button1 = Radiobutton(__widget, text="Tool User", variable=__user_type_input,
                                       value=1)
-        __radio_button2 = Radiobutton(self.PWparent, text="Tool Owner", variable=__user_type_input,
+        __radio_button2 = Radiobutton(__widget, text="Tool Owner", variable=__user_type_input,
                                       value=2)
         kw['column'] = 1
         __radio_button1.grid(kw)
@@ -467,7 +467,7 @@ class UI_Interface:
         elif (__account_user_type == "Tool_Owner"):
             button_text_and_functions = [
                 ("Register tool", self.register_tool_UI),
-                ("View Listed Inventory", self.menu_view_listed_inventory),
+                ("View Listed Inventory", self.menu_listed_inventory_UI),
                 ("Search for tools", None),
                 ("View current orders", None),
                 ("View Purchase History", None),
@@ -493,7 +493,7 @@ class UI_Interface:
         self.UI_root.mainloop()
 
     def get_db_images(self, _fetched_dictionary: dict, _dict_element: str, _subsample=4):
-        list_unpacked_images_path = self.get_db_images_path(_fetched_dictionary , _dict_element)
+        list_unpacked_images_path = self.unpack_db_images_path(_fetched_dictionary.get(_dict_element, ""))
         photo_image_object_list = []
         for _image_path in list_unpacked_images_path:
             try:
@@ -503,8 +503,7 @@ class UI_Interface:
         self.image_references.extend(photo_image_object_list)
         return photo_image_object_list
 
-    def get_db_images_path(self, _fetched_dictionary: dict, _dict_element: str):
-        packed_images_path = _fetched_dictionary.get(_dict_element, '')
+    def unpack_db_images_path(self, packed_images_path: str):
         list_unpacked_images_path = []
         if packed_images_path !='':
             list_packed_images_path = packed_images_path.split('#{@!#')
@@ -563,16 +562,9 @@ class UI_Interface:
         self.menubar.add_cascade(label="Options", menu=__submenu)
         self.UI_root.config(menu=self.menubar)
 
-    def contact_admin(self):
-        print("Contact Admin")
-        # IDK what to do here, do something fancy lol
-        # Can add message inbox to admin's personal db for that stuff, logs, etc
-        # Can also create an interface for an admin account
 
-    def menu_search_for_tools(self):
-        pass  # TODO
 
-    def menu_view_listed_inventory(self):  # TODO
+    def menu_listed_inventory_UI(self):  # TODO
         self.go_back_menu = self.menu_user_options_UI
         self.setup_new_window()
         self.UI_root.resizable(width=False, height=True)
@@ -588,42 +580,45 @@ class UI_Interface:
             __i=0
             for __list_row in __list_results:
                 __i+=1
-                self.display_list_tool_gui(sc.container, __list_row)    
+                self.display_list_tool_UI(sc.container, __list_row)    
         else:
             Label(self.UI_root_frame, text='Your inventory is empty', font=("Helvetica", 20)).grid(padx=100, pady=300)
         sc.grid(row=0, column=0, sticky='nsew')
         self.UI_root.mainloop()        
 
-    def display_list_tool_gui(self, __parent, __list_row, **kw):
-
-        __item_info_dict = dict(zip(self.user_account.Inventory_Table_Index, __list_row))
-        __Tool_Frame = self.add_label_frame(
-            __parent, __item_info_dict.get('Item_Name'), ipadx=50, ipady=30, padx=5, pady=5)
-        images_path_list = self.get_db_images_path(__item_info_dict, 'Tool_Photos')
-        returned_images = self.get_db_images(__item_info_dict, 'Tool_Photos', 4)
-        if len(returned_images)>0:
-            Label(__Tool_Frame, image=returned_images[0]).grid(rowspan=4, padx=20, pady=10)
-
-        _list=[]
-        _list.append('Half day rate: ' + self.get_displayable_price(__item_info_dict.get('Half_Day_Fee')))
-        _list.append('Full day rate: ' + self.get_displayable_price(__item_info_dict.get('Full_Day_Fee')))
-        _list.append('Current process state: ' + __item_info_dict.get('Item_Process_State'))
-        _list.append('Item Number: ' + __item_info_dict.get('Unique_Item_Number'))
-    
-        
+    def display_list_tool_UI(self, __parent, __list_row, **kw):
+        # create item dictionary
+        item_dictionary = dict(zip(self.user_account.Inventory_Table_Index, __list_row))
+        # create parent
+        PWparent = LabelFrame(
+            __parent,
+            text=item_dictionary.get('Item_Name')
+        )
+        images_path_list = self.unpack_db_images_path(item_dictionary.get('Tool_Photos', ''))
+        returned_images = self.get_db_images(item_dictionary, 'Tool_Photos', 4)
+        # Place photo if one exists
+        if len(returned_images)>0: 
+            Label(PWparent, image=returned_images[0]).grid(rowspan=4, padx=20, pady=10)
+        # Labels to display
+        _list=[
+            'Half day rate: ' + self.get_displayable_price(item_dictionary.get('Half_Day_Fee')),
+            'Full day rate: ' + self.get_displayable_price(item_dictionary.get('Full_Day_Fee')),
+            'Current process state: ' + item_dictionary.get('Item_Process_State'),
+            'Item Number: ' + item_dictionary.get('Unique_Item_Number')
+        ]
+        # Display labels in a 2 row x X column configuration
         _row_end=1
         _column_offset =1
         _list_len = len(_list)/2 + _column_offset
         _column_start = _column_offset
         _column_end = int(_list_len)
-
         if _column_end != _list_len:
             case="uneven"
             _column_end += 1
         else:
             case="even"
         def add_Label(__text, _column, _row):
-            Label(__Tool_Frame, text=__text).grid(row=_row, column=_column, padx=30, sticky="nw")
+            Label(PWparent, text=__text).grid(row=_row, column=_column, padx=30, sticky="nw")
         _index=0
         for _i in range(_column_start,_column_end):
             for _j in range(0, _row_end+1):
@@ -633,12 +628,11 @@ class UI_Interface:
                     if(_i!=_column_end):
                         add_Label(_list[_index], _i, _j)
                 _index+=1
-
-
-        item_descrition = Text(__Tool_Frame, wrap=WORD, height=3, width=50)
+        # Place item description
+        item_descrition = Text(PWparent, wrap=WORD, height=3, width=50)
         item_descrition.grid(row=3, column=1, columnspan=100)
-
-        _desc_amalgam = __item_info_dict.get('Description', "error")
+        # Get item description and trim it to fit the box 
+        _desc_amalgam = item_dictionary.get('Description', "error")
         _desc = _desc_amalgam.replace("\\n", " ")
         _max_char_len = 130
         if len(_desc) > _max_char_len:
@@ -648,33 +642,28 @@ class UI_Interface:
                 if len(_new_desc) < _max_char_len:
                     _new_desc += f" {_word}"
             _desc = _new_desc + " ( . . . ) "
-        
+        # Output item description
         item_descrition.insert('end', _desc)
         item_descrition.config(state=DISABLED)
-        Button(__Tool_Frame, text="Edit", command=lambda: self.edit_individual_tool(__item_info_dict, images_path_list)).grid(
-            column=1, columnspan=3,pady=10, ipadx=50, ipady=5)   
-        # take kw
-        # labelframe, display Tool Name, half day rate and full day rate and button to bring up a separate individual page
-        # change make calendar show events, put dates in an array and save on db
-        # for loop to go through all dates?
-        # load array from db and and select dates on calendar
+        # View/Edit item button
+        viewB = Button(PWparent,
+            text="Edit",
+            command=lambda: self.edit_individual_tool_UI(item_dictionary, images_path_list))
+        viewB.grid(column=3, columnspan=2,pady=10, ipadx=40, ipady=2)
+        PWparent.grid(ipadx=50, ipady=30, padx=5, pady=5)
 
-        # load photo from db
-
-    def edit_individual_tool(self, tool_information_dict, images_path_list):\
-
-        self.go_back_menu = self.menu_view_listed_inventory
+    def edit_individual_tool_UI(self, tool_information_dict, images_path_list): # TODO refactor
+        self.go_back_menu = self.menu_listed_inventory_UI
         self.setup_new_window()
         self.UI_root.resizable(width=False, height=False)
         self.UI_root.title("Shared Power - Edit Tool")
         self.add_menu_bar_4()
-        print(tool_information_dict)
         availability = self.get_unpacked_dates(tool_information_dict.get("Availability", []))
         availability_pair_dict = self.get_date_pair_list(availability)
         
 
 
-        self.PWparent = self.add_label_frame(
+        PWparent = self.add_label_frame(
             self.UI_root_frame, "Edit Tool", ipadx=50, ipady=30, padx=5, pady=5)
 
         self.tool_name = StringVar()
@@ -685,26 +674,24 @@ class UI_Interface:
         self.availability_end_date_StrVar = StringVar()
 
         label_text_and_vars = [  # None = do not generate Entry, useful for different input widgets
-            ("Tool Name:", self.tool_name),#0
-            ("Description:", None),#1
-            ("Half day rate:", self.half_day_rate),#2
-            ("Full Day Rate:", self.full_day_rate),#3
-            ("Availability start date:", None),#4
-            ("Availablity end date:", None),#5
-            ("Dates Booked:", None),#6
-            ("Choose Photo:", None),#7
+            ("Tool Name:", self.tool_name),             #0
+            ("Description:", None),                     #1
+            ("Half day rate:", self.half_day_rate),     #2
+            ("Full Day Rate:", self.full_day_rate),     #3
+            ("Availability start date:", None),         #4
+            ("Availablity end date:", None),            #5
+            ("Dates Booked:", None),                    #6
+            ("Choose Photo:", None),                    #7
 
         ]
         label_list, entries_list = self.generate_UI_label_and_entry(
-            self.PWparent, label_text_and_vars)
+            PWparent, label_text_and_vars)
         # Fill the empty entries 
         entries_list[0].insert(0,tool_information_dict.get("Item_Name"))
         entries_list[2].insert(0,self.get_displayable_price(tool_information_dict.get("Half_Day_Fee")))
         entries_list[3].insert(0,self.get_displayable_price(tool_information_dict.get("Full_Day_Fee")))
-
-
         # description textbox
-        item_description = Text(self.PWparent, wrap=WORD, height=10, width=80)
+        item_description = Text(PWparent, wrap=WORD, height=10, width=80)
         item_description.grid(row=1, column=1, columnspan=5)
         _desc = tool_information_dict.get('Description', "error").replace('\\n', ' \n')
         item_description.insert('end', _desc)
@@ -713,34 +700,34 @@ class UI_Interface:
         availability_start_date= availability_pair_dict[0][0]
         self.availability_start_date_str = StringVar()
         start_dateentry = self.add_date_entry(
-            self.PWparent, self.availability_start_date_str, row=4, column=1, columnspan=2, sticky=W, date=availability_start_date)
+            PWparent, self.availability_start_date_str, row=4, column=1, columnspan=2, sticky=W, date=availability_start_date)
         if availability_start_date<datetime.datetime.now(): 
             start_dateentry.config(state=DISABLED)
-            Label(self.PWparent, text="Not editable if tool was already available").grid(row=4, column=3, sticky=W)
+            Label(PWparent, text="Not editable if tool was already available").grid(row=4, column=3, sticky=W)
 
         # Date entry end date
         availability_end_date= availability_pair_dict[len(availability_pair_dict)-1][1]
         self.availability_end_date_str = StringVar()
         end_dateentry = self.add_date_entry(
-            self.PWparent, self.availability_end_date_str, row=5, column=1, columnspan=2, sticky=W, date=availability_end_date)
+            PWparent, self.availability_end_date_str, row=5, column=1, columnspan=2, sticky=W, date=availability_end_date)
         if len(availability)>2:
             end_dateentry.config(state=DISABLED)
-            Label(self.PWparent, text="Not editable if tool was already booked").grid(row=5, column=3, sticky=W)
+            Label(PWparent, text="Not editable if tool was already booked").grid(row=5, column=3, sticky=W)
             
 
         # View bookings
-        Button(self.PWparent, text='View Bookings',command=lambda: self.view_bookings_UI(availability_pair_dict)).grid(row=6, column=1, columnspan=2, sticky=W)
+        Button(PWparent, text='View Bookings',command=lambda: self.view_bookings_UI(availability_pair_dict)).grid(row=6, column=1, columnspan=2, sticky=W)
 
         # Custom GetImagesWidget
-        self.files_widget = GetImagesWidget(self.PWparent, empty_message='Add Photo', max_items=5)
+        self.files_widget = GetImagesWidget(PWparent, empty_message='Add Photo', max_items=5)
         self.files_widget.grid(row=7, column=1, columnspan=2, sticky=W)
         self.files_widget.automatic__file_input(images_path_list)
 
 
         # Buttons
-        Button(self.PWparent, text="Update Tool Information", command=self.process_register_or_update_tool).grid(
+        Button(PWparent, text="Update Tool Information", command=self.process_register_or_update_tool).grid(
             column=5, ipadx=10, ipady=5, sticky='e')
-        Button(self.PWparent, text="Remove Tool Listing", command=self.process_register_or_update_tool).grid(
+        Button(PWparent, text="Remove Tool Listing", command=self.process_register_or_update_tool).grid(
             column=5, ipadx=10, ipady=5, sticky='e') 
         
 
@@ -753,7 +740,7 @@ class UI_Interface:
             startday, endday = booked_dates.pop(0)
             top = Toplevel(self.UI_root)
             cal = Calendar(top, selectmode='none', date_pattern='d/m/yyyy', day=startday.day, month=startday.month, year=startday.year)
-            # , mindate=availability_start_date,maxdate=availability_end_date  # this was removed because mindate and maxdate are broken
+            # mindate and maxdate from Calendar are broken, DO NOT USE
             for dates in booked_dates:
                 start_date, end_date = dates
                 for i in range(0, (end_date-start_date).days+1):
@@ -761,7 +748,11 @@ class UI_Interface:
                     cal.calevent_create(date, 'Booked', 'booked')
             cal.tag_config('booked', background='red', foreground='yellow')
             cal.pack(fill="both", expand=True)
-
+    
+    #### TODO MENUS
+    def menu_search_for_tools(self):
+        pass  # TODO
+    
     def menu_view_current_orders(self):
         pass  # TODO
 
@@ -771,16 +762,8 @@ class UI_Interface:
     def menu_view_next_invoice(self):
         pass  # TODO
 
-    def view_own_tool_inventory(self):
-        pass  # TODO
-        # get own tool inventory
-
-    def quit(self):
-        self.UI_root.destroy()
-        self.UI_root.quit()
 
     ##### random method for Class functionality #####
-
 
     def goto_register_user_menu(self, event):
         self.register_user_UI()
@@ -833,6 +816,16 @@ class UI_Interface:
 
     def string_to_datetime(self, _string: str):
         return datetime.datetime.strptime(_string, '%d/%m/%Y')
+
+    def contact_admin(self):
+        print("Contact Admin")
+        # IDK what to do here, do something fancy lol
+        # Can add message inbox to admin's personal db for that stuff, logs, etc
+        # Can also create an interface for an admin account
+
+    def quit(self):
+        self.UI_root.destroy()
+        self.UI_root.quit()
 
     ########################################################    Main Program    ###########################################
 
