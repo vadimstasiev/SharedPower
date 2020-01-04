@@ -60,7 +60,6 @@ class GetFilesWidget(Frame):
         self.refresh__ADD_button()
 
     def automatic__file_input(self, files):
-
         for i in range(0, len(files)-2):
             self.place__fileFrame()
         fileFrameANDpathbuttonList = zip(
@@ -129,7 +128,7 @@ class GetFilesWidget(Frame):
         self.refresh__ADD_button()
 
     def get_difference(self):
-        self.files_path_str_list == self._original_SET_list
+        #self.files_path_str_list == list(tuple(self._original_SET_list))
         added = []
         for i in self.files_path_str_list:
             if i not in self._original_SET_list:

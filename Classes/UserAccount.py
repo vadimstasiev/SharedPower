@@ -97,21 +97,51 @@ class UserAccount():
 
     def register_tool(self, **kw):
         self.dbInterface.select_table(self.inventory_table)
-        tool_info_and_owner = (
+        tool_info = (
             str(self.generate_unique_ID()),
             kw.pop("item_name", "None"),
             kw.pop("half_day_fee", 0),
             kw.pop("full_day_fee", 0),
             kw.pop("description", "None"),
             kw.pop("availability", ""),
-            kw.pop("item_process_state", "With Owner"),
+            kw.pop("item_process_state", "Error"),
             self.fetched_user_dictionary.get('Unique_User_ID'),
             kw.pop("photos", "")
         )
         if len(kw) > 1:
             self.user_class_error_buffer(
                 "ERROR - Please Update the tool register method to match the given kw")
-        self.dbInterface.data_entry(tool_info_and_owner)
+        self.dbInterface.data_entry(tool_info)
+
+    def update_tool(self, **kw):
+        tool_ID = kw.pop("tool_ID", "0")
+        self.dbInterface.select_table(self.inventory_table)
+        tool_info = (
+            tool_ID,
+            kw.pop("item_name", "None"),
+            kw.pop("half_day_fee", 0),
+            kw.pop("full_day_fee", 0),
+            kw.pop("description", "None"),
+            kw.pop("availability", "None"),
+            kw.pop("item_process_state", "Error"),
+            self.fetched_user_dictionary.get('Unique_User_ID'),
+            kw.pop("photos", "")
+        )
+        if len(kw) > 1:
+            self.user_class_error_buffer(
+                "ERROR - Please Update the tool updater method to match the given kw")
+        _updated_tool_dict = zip(self.Inventory_Table_Index, tool_info)
+        indentifying_expr = f"Unique_Item_Number = '{tool_ID}'"
+        for element in _updated_tool_dict:
+            column_name, updated_item = element
+            replace_with_expr = f"{column_name} = '{updated_item}'"
+            self.dbInterface.update_database(
+                indentifying_expr, replace_with_expr)
+
+    def delete_tool(self, tool_ID="0"):
+        self.dbInterface.select_table(self.inventory_table)
+        indentifying_expr = f"Unique_Item_Number = '{tool_ID}'"
+        self.dbInterface.delete_line(indentifying_expr)
 
     def does_email_exist(self, __user_email: str):
         return self.update_fetched_user_details(__user_email)

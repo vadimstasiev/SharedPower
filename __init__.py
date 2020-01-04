@@ -6,6 +6,7 @@ import datetime
 import os
 import shutil
 from tkinter import *
+from tkinter import messagebox
 from typing import List
 
 # Import local classes
@@ -129,8 +130,8 @@ class UI_Interface:
             sticky=W
         )
         # Files Widget
-        self.files_widget = GetImagesWidget(PWparent, empty_message='Add Photo', max_items=1)
-        self.files_widget.grid(row=10, column=1, columnspan=2, pady=4, sticky=W)
+        images_widget = GetImagesWidget(PWparent, empty_message='Add Photo', max_items=1)
+        images_widget.grid(row=10, column=1, columnspan=2, pady=4, sticky=W)
         # Class Variables:
         Variables_Dict = {
             "First_Name":first_name_StrVar,
@@ -142,7 +143,8 @@ class UI_Interface:
             "Email_Address": email_StrVar, 
             "Password": password_StrVar, 
             "Confirm_Password": confirm_password_StrVar, 
-            "Type_of_User": user_type_IntVar
+            "Type_of_User": user_type_IntVar,
+            "Images_Widget":images_widget
         }
         # Register Button
         submit_button = Button(
@@ -176,7 +178,8 @@ class UI_Interface:
         self.validate_register_user_input() 
         # Check buffer
         if(len(self.buffered_user_errors) == 0): 
-            reg_U_packed_images_db_list = self.get_images_from_widget(self.files_widget)
+            images_widget = kw.get("Images_Widget")
+            reg_U_packed_images_db_list = self.get_image_paths_str_DB_ready(images_widget)
             self.user_account.register(
                 first_name=self.reg_U_first_name,
                 surname=self.reg_U_surname,
@@ -262,8 +265,8 @@ class UI_Interface:
         self.place_date_entry_get_entry(
             PWparent, end_date_StrVar, row=5, column=1, columnspan=2, sticky=W)
         # Get Photo Widget
-        self.files_widget = GetImagesWidget(PWparent, empty_message='Add Photo', max_items=3)
-        self.files_widget.grid(row=6, column=1, columnspan=2, sticky=W)
+        images_widget = GetImagesWidget(PWparent, empty_message='Add Photo', max_items=3)
+        images_widget.grid(row=6, column=1, columnspan=2, sticky=W)
         # Variable Dictionary
         VariableDict= { 
             "Tool_Name":toolname_StrVar,
@@ -271,7 +274,8 @@ class UI_Interface:
             "Half_Day_Rate":half_rate_StrVar,
             "Full_Day_Rate":full_rate_StrVar,
             "Start_Date":start_date_StrVar,
-            "End_Date":end_date_StrVar
+            "End_Date":end_date_StrVar,
+            "Images_Widget":images_widget
         }
         # Register Button
         registerB = Button(
@@ -286,28 +290,47 @@ class UI_Interface:
 
     def process_register_or_update_tool(self, _parent, **kw):  # TODO TODO TODO
         # Class Vars, they are public so they can be validated
+        reg_T_tool_ID = kw.pop("Tool_ID", "0")
         self.reg_T_tool_name = str(kw.pop("Tool_Name").get())
-        self.reg_T_description = str(kw.pop("Description_Box").get("1.0", 'end-1c'))
+        self.reg_T_description = str(kw.pop("Description_Box").get("1.0", 'end-1c')).replace("'","''")
         self.reg_T_half_day_rate = str(kw.pop("Half_Day_Rate").get())
         self.reg_T_full_day_rate = str(kw.pop("Full_Day_Rate").get())
-        reg_T_availability_list = [
-            str(kw.pop("Start_Date").get()),
-            str(kw.pop("End_Date").get())
-        ]
+        process_state = kw.pop("Process_State", StringVar()).get()
+        if process_state!="":
+            self.reg_T_process_state = str(process_state)
+        else:
+            self.reg_T_process_state = "with owner"
+
+        _dates_list = (
+            self.string_to_datetime(kw.pop("Start_Date").get()),
+            self.string_to_datetime(kw.pop("End_Date").get())
+        )
+        _existent_list_pair = kw.pop("Original_Availability_Pair_List", [_dates_list])
+        _existent_list_pair[0] = _dates_list
+        reg_T_availability_list = self.pack_availability_dates_DB_READY(_existent_list_pair)
+        images_widget = kw.get("Images_Widget")
+        Update = kw.pop("Update", False)
         # Validate Vars
         self.validate_register_tool_input()
         # Check if Vars produced any errors
         if(len(self.buffered_user_errors) == 0):
             self.clear_errors()
-            reg_T_packed_images_db_list = self.get_images_from_widget(self.files_widget)
-            self.user_account.register_tool(
-                item_name=self.reg_T_tool_name,
-                half_day_fee=self.get_savable_int_price(self.reg_T_half_day_rate),
-                full_day_fee=self.get_savable_int_price(self.reg_T_full_day_rate),
-                description=self.reg_T_description,
-                availability=self.pack_availability_dates_DB_READY(reg_T_availability_list),
-                photos=reg_T_packed_images_db_list
-            )
+
+            reg_T_packed_images_db_list = self.get_image_paths_str_DB_ready(images_widget)
+            kwargs = {
+                'tool_ID':reg_T_tool_ID,
+                'item_name':self.reg_T_tool_name,
+                'half_day_fee':self.get_savable_int_price(self.reg_T_half_day_rate),
+                'full_day_fee':self.get_savable_int_price(self.reg_T_full_day_rate),
+                'description':self.reg_T_description,
+                'availability':reg_T_availability_list,
+                'item_process_state':self.reg_T_process_state,
+                'photos':reg_T_packed_images_db_list
+            }
+            if Update:
+                self.user_account.update_tool(**kwargs)
+            else:
+                self.user_account.register_tool(**kwargs)
             self.go_back_menu()
         else:
             self.clear_errors()
@@ -340,12 +363,29 @@ class UI_Interface:
             self.buffered_user_errors.append(
                 "Please enter a valid price for the full day rate")
 
-    def pack_availability_dates_DB_READY(self, reg_T_availability_list):
-        __list = reg_T_availability_list
-        __reg_T_availability_str_pack = __list[0]
-        for __date in __list:
-            __reg_T_availability_str_pack += '#' + __date
-        return __reg_T_availability_str_pack
+    def delete_tool(self, tool_ID, images_to_delete):
+        answer = messagebox.askyesnocancel(
+            "Delete Tool Listing",
+            "Are you sure that you want to remove this listing?",
+            icon = 'warning'
+        )
+        if answer == YES:
+            self.user_account.delete_tool(tool_ID)
+            self.delete_images(images_to_delete)
+            self.go_back_menu()
+
+    def delete_images(self, image_path_list):
+        for image in image_path_list:
+            os.remove(image)
+
+    def pack_availability_dates_DB_READY(self, availability_list_pair):
+        pair_list = availability_list_pair
+        packed_availability_str = ""
+        for pair in pair_list:
+            for date in pair:
+                packed_availability_str += '#' + self.datetime_to_string(date)
+        packed_availability_str = packed_availability_str.replace("#","",1) # Remove first "#"
+        return packed_availability_str
 
     def unpack_dates_from_DB(self, __DB_packed_dates):
         __list = __DB_packed_dates.split('#')
@@ -529,7 +569,7 @@ class UI_Interface:
     def view_listed_inventory_UI(self):
         self.go_back_menu = self.menu_user_options_UI
         self.reset_window()
-        self.root.resizable(width=False, height=True)
+        self.root.resizable(width=True, height=True)
         self.root.title("Shared Power - View Stock Inventory")
         self.add_menu_bar_UI_4()
         self.root.grid_rowconfigure(0, weight=1)
@@ -547,6 +587,8 @@ class UI_Interface:
         else:
             Label(sc.container, text='Your inventory is empty', font=("Helvetica", 20)).grid(padx=100, pady=300)
         sc.grid(row=0, column=0, sticky='nsew')
+        # Show any errors that might have come up 
+        self.generate_output_errors_UI(sc.container, padx=50, starting_index=500)
         self.root.mainloop()        
 
     def display_list_tool_UI(self, __parent, result_item, **kw):
@@ -594,7 +636,7 @@ class UI_Interface:
         item_descrition.grid(row=3, column=1, columnspan=100)
         # Get item description and trim it to fit the box 
         _desc_amalgam = item_dictionary.get('Description', "error")
-        _desc = _desc_amalgam.replace("\\n", " ").replace("\\t", "")
+        _desc = _desc_amalgam.replace("\\n", " ").replace("\\t", "").replace("''", "'")
         _max_char_len = 130
         if len(_desc) > _max_char_len:
             _new_desc = ""
@@ -614,7 +656,7 @@ class UI_Interface:
         PWparent.grid(ipadx=50, ipady=30, padx=5, pady=5)
 
     def edit_individual_tool_UI(self, tool_information_dict): # TODO refactor
-        images_path_list = self.unpack_db_images_path(item_dictionary.get('Tool_Photos', ''))
+        images_path_list = self.unpack_db_images_path(tool_information_dict.get('Tool_Photos', ''))
         self.go_back_menu = self.view_listed_inventory_UI
         self.reset_window()
         self.root.resizable(width=False, height=False)
@@ -630,7 +672,9 @@ class UI_Interface:
         toolname_StrVar = StringVar()
         half_rate_StrVar = StringVar()
         full_rate_StrVar = StringVar()
-        self.post_code_StrVar = StringVar()
+        start_date_StrVar = StringVar()
+        end_date_StrVar = StringVar()
+        process_state_StrVar = StringVar()
         # Generate Labels and Entries
         label_list, entries_list = self.generate_labels_and_entries_UI(PWparent, [
             ("Tool Name:", toolname_StrVar),            #0
@@ -640,52 +684,92 @@ class UI_Interface:
             ("Availability start date:", None),         #4
             ("Availablity end date:", None),            #5
             ("Dates Booked:", None),                    #6
-            ("Choose Photo:", None),                    #7
+            ("Item Process State:", None),              #7
+            ("Choose Photo:", None),                    #8
         ])
         # Fill the empty Entries
         entries_list[0].insert(0,tool_information_dict.get("Item_Name"))
         entries_list[2].insert(0,self.get_displayable_price(tool_information_dict.get("Half_Day_Fee")))
         entries_list[3].insert(0,self.get_displayable_price(tool_information_dict.get("Full_Day_Fee")))
         # Description Textbox
-        item_description = Text(PWparent, wrap=WORD, height=10, width=80)
-        item_description.grid(row=1, column=1, columnspan=5)
-        _desc = tool_information_dict.get('Description', "error").replace('\\n', ' \n')
-        item_description.insert('end', _desc)
+        description_box = Text(PWparent, wrap=WORD, height=10, width=80)
+        description_box.grid(row=1, column=1, columnspan=5)
+        _desc = tool_information_dict.get('Description', "error").replace('\\n', ' \n').replace("''","'")
+        description_box.insert('end', _desc)
         # Get Availability List
         Availability_Pair_List = self.unpack_dates_from_DB(tool_information_dict.get("Availability", ''))
         # Date entry start date
         start_datetime = Availability_Pair_List[0][0]
-        self.availability_start_date_str = StringVar()
         start_dateentry = self.place_date_entry_get_entry(
-            PWparent, self.availability_start_date_str, row=4, column=1, columnspan=2, sticky=W, date=start_datetime)
+            PWparent,
+            start_date_StrVar,
+            row=4, column=1,
+            columnspan=2, sticky=W,
+            date=start_datetime
+        )
         if start_datetime<datetime.datetime.now():
             start_dateentry.config(state=DISABLED)
-            Label(PWparent, text="Not editable if tool was already available").grid(row=4, column=3, sticky=W)
-
+            _message = Label(PWparent, text="Not editable if tool was once already available")
+            _message.grid(row=4, column=3, sticky=W)
         # Date entry end date
-        availability_end_date= Availability_Pair_List[len(Availability_Pair_List)-1][1]
-        self.availability_end_date_str = StringVar()
+        end_datetime= Availability_Pair_List[len(Availability_Pair_List)-1][1]
         end_dateentry = self.place_date_entry_get_entry(
-            PWparent, self.availability_end_date_str, row=5, column=1, columnspan=2, sticky=W, date=availability_end_date)
+            PWparent,
+            end_date_StrVar,
+            row=5, column=1,
+            columnspan=2, sticky=W,
+            date=end_datetime
+        )
         if len(Availability_Pair_List)>1:
             end_dateentry.config(state=DISABLED)
-            Label(PWparent, text="Not editable if tool was already booked").grid(row=5, column=3, sticky=W)
-            
-
+            _message = Label(PWparent, text="Not editable if tool was once already booked")
+            _message.grid(row=5, column=3, sticky=W)  
         # View bookings
-        Button(PWparent, text='View Bookings',command=lambda: self.view_bookings_Calendar_UI(Availability_Pair_List)).grid(row=6, column=1, columnspan=2, sticky=W)
-
+        _viewbookingsB = Button(
+            PWparent,
+            text='View Bookings',
+            command=lambda: self.view_bookings_Calendar_UI(Availability_Pair_List)
+        )
+        _viewbookingsB.grid(row=6, column=1, columnspan=2, sticky=W)
+        # Dropdown select
+        choices = { 'with owner','with depot','with user','with insurance','being processed'}
+        default_selection = tool_information_dict.get('Item_Process_State', 'Error')
+        process_state_StrVar.set(default_selection)
+        dropdown_select = OptionMenu(PWparent, process_state_StrVar, *choices)
+        dropdown_select.grid(row=7, column=1, columnspan=2, sticky=W, pady=5)
         # Custom GetImagesWidget
-        self.files_widget = GetImagesWidget(PWparent, empty_message='Add Photo', max_items=3)
-        self.files_widget.grid(row=7, column=1, columnspan=2, sticky=W)
-        self.files_widget.automatic__file_input(images_path_list)
-
-
+        images_widget = GetImagesWidget(PWparent, empty_message='Add Photo', max_items=3)
+        images_widget.grid(row=8, column=1, columnspan=2, sticky=W)
+        images_widget.automatic__file_input(images_path_list)
+        # Get Tool ID number
+        tool_ID = tool_information_dict.get("Unique_Item_Number")
+        # Var Dictionary# need to add item process_State
+        VariableDict= { 
+            "Tool_ID":tool_ID,
+            "Tool_Name":toolname_StrVar,
+            "Description_Box":description_box,
+            "Half_Day_Rate":half_rate_StrVar,
+            "Full_Day_Rate":full_rate_StrVar,
+            "Start_Date":start_date_StrVar,
+            "End_Date":end_date_StrVar,
+            "Images_Widget":images_widget,
+            "Process_State":process_state_StrVar,
+            "Original_Availability_Pair_List": Availability_Pair_List,
+            "Update":True
+        }
         # Buttons
-        Button(PWparent, text="Update Tool Information", command=self.process_register_or_update_tool).grid(
-            column=5, ipadx=10, ipady=5, sticky='e')
-        Button(PWparent, text="Remove Tool Listing", command=self.process_register_or_update_tool).grid(
-            column=5, ipadx=10, ipady=5, sticky='e') 
+        _updateinfoB = Button(
+            PWparent,
+            text="Update Tool Information",
+            command=lambda:self.process_register_or_update_tool(PWparent, **VariableDict)
+        )
+        _updateinfoB.grid(column=5, ipadx=10, ipady=5, sticky='e')
+        _removelisting = Button(
+            PWparent, 
+            text="Remove Tool Listing",
+            command=lambda:self.delete_tool(tool_ID, images_path_list),
+        )
+        _removelisting.grid(column=5, ipadx=10, ipady=5, sticky='e') 
 
         PWparent.grid(ipadx=50, ipady=30, padx=5, pady=5)
         self.root.mainloop()
@@ -780,19 +864,28 @@ class UI_Interface:
         self.buffered_user_errors.clear()
         return buffered_errors
 
-    def get_images_from_widget(self, __wgt):
+    def get_image_paths_str_DB_ready(self, __wgt: GetImagesWidget):
         images_path_list = __wgt.get_PATHS()
+        removed_list, added_list = __wgt.get_difference()
         images_db_list = ''
         if not os.path.exists('Images'):
             os.makedirs('Images')
-        for i in images_path_list:
-            destination = './Images/' + str(self.user_account.generate_unique_ID())
-            __extension = ''
-            for j in range(i.rindex('.'), len(i)):
-                    __extension += i[j]
-            destination+=__extension
-            shutil.copyfile(i, destination)
+        for image in images_path_list:
+            if image in added_list:
+                destination = './Images/' + str(self.user_account.generate_unique_ID())
+                __extension = ''
+                for j in range(image.rindex('.'), len(image)):
+                        __extension += image[j]
+                destination+=__extension
+                shutil.copyfile(image, destination)
+            else:
+                destination = image
             images_db_list+=destination + '#{@!#'
+        # try to delete unused images
+        try:
+            self.delete_images(removed_list)
+        except:
+            pass
         return images_db_list # returns a single string with all paths, ready to be saved on a DB
 
     def get_savable_int_price(self, __price):

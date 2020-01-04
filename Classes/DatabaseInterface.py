@@ -67,9 +67,28 @@ class DatabaseInterface:
         __result_list = self.dbCursor.fetchall()
         return __result_list
 
-    def update_database(self, __identifying_exp: str, __replace_with: str):
-        self.dbCursor.execute("UPDATE " + self.selected_table +
-                              " SET " + __replace_with + " WHERE " + __identifying_exp)
+    # e.g. UPDATE employees SET lastname = 'Smith' WHERE employeeid = 3
+    def update_database(self, __identifying_exp: str, __replace_with):
+        query = ""
+        try:
+            query = "UPDATE " + self.selected_table + " SET " + \
+                __replace_with + " WHERE " + str(__identifying_exp)
+            self.dbCursor.execute(query)
+        except:
+            self.db_class_error_buffer.append("ERROR Executing SQLite Query")
+            self.db_class_error_buffer.append(query)
+        self.dbConnection.commit()
+
+    # e.g. __identifying_exp = "Value3 = 342.54 AND Value4 = 'Cookie Master'"
+    def delete_line(self, __identifying_exp):
+        query = ""
+        try:
+            query = "DELETE FROM " + self.selected_table + \
+                " WHERE " + str(__identifying_exp)
+            self.dbCursor.execute(query)
+        except:
+            self.db_class_error_buffer.append("ERROR Executing SQLite Query")
+            self.db_class_error_buffer.append(query)
         self.dbConnection.commit()
 
     def custom_query(self, __custom_query: str):
