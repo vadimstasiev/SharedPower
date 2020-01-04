@@ -1,4 +1,4 @@
-# please install the following non-standard libraries: bcrypt, pillow , tkcalendar (includes Babel which is needed)
+# please install the following non-standard libraries: bcrypt, pillow (should no longer be needed) , tkcalendar (includes Babel which is needed)
 
 import sys
 import time
@@ -273,7 +273,7 @@ class UI_Interface:
                 half_day_fee=self.get_savable_int_price(self.reg_T_half_day_rate),
                 full_day_fee=self.get_savable_int_price(self.reg_T_full_day_rate),
                 description=self.reg_T_description,
-                availability=self.get_packed_availability_dates(reg_T_availability_list),
+                availability=self.pack_availability_dates_DB_READY(reg_T_availability_list),
                 photos=reg_T_packed_images_db_list
             )
             self.go_back_menu()
@@ -316,21 +316,18 @@ class UI_Interface:
         #     self.buffered_user_errors.append(
         #         "Please Enter a Valid Date")
 
-    def get_packed_availability_dates(self, reg_T_availability_list):
+    def pack_availability_dates_DB_READY(self, reg_T_availability_list):
         __list = reg_T_availability_list
         __reg_T_availability_str_pack = __list[0]
         for __date in __list:
             __reg_T_availability_str_pack += '#' + __date
         return __reg_T_availability_str_pack
 
-    def get_unpacked_dates(self, __dates_str_packed: str):
-        __list = __dates_str_packed.split('#')
+    def pair_dates_from_DB_packed(self, __DB_packed_dates):
+        __list = __DB_packed_dates.split('#')
         unpacked_dates=[]
         for i in __list:
             unpacked_dates.append(i.strip('#'))
-        return unpacked_dates
-
-    def get_date_pair_list(self, unpacked_dates):
         pair_list = []
         for i in range(0, len(unpacked_dates)-1, 2):
             start_date = unpacked_dates[i]
@@ -658,13 +655,13 @@ class UI_Interface:
         self.UI_root.resizable(width=False, height=False)
         self.UI_root.title("Shared Power - Edit Tool")
         self.add_menu_bar_4()
-        availability = self.get_unpacked_dates(tool_information_dict.get("Availability", []))
-        availability_pair_dict = self.get_date_pair_list(availability)
         
-
-
-        PWparent = self.add_label_frame(
-            self.UI_root_frame, "Edit Tool", ipadx=50, ipady=30, padx=5, pady=5)
+        # create parent
+        LBtext = "Edit Tool: " + tool_information_dict.get("Item_Name")
+        PWparent = LabelFrame(
+            self.UI_root_frame,
+            text=LBtext
+        )
 
         self.tool_name = StringVar()
         self.half_day_rate = StringVar()
@@ -695,9 +692,10 @@ class UI_Interface:
         item_description.grid(row=1, column=1, columnspan=5)
         _desc = tool_information_dict.get('Description', "error").replace('\\n', ' \n')
         item_description.insert('end', _desc)
-        
+        # Get Availability List
+        Availability_Pair_List = self.pair_dates_from_DB_packed(tool_information_dict.get("Availability", ''))
         # Date entry start date
-        availability_start_date= availability_pair_dict[0][0]
+        availability_start_date= Availability_Pair_List[0][0]
         self.availability_start_date_str = StringVar()
         start_dateentry = self.add_date_entry(
             PWparent, self.availability_start_date_str, row=4, column=1, columnspan=2, sticky=W, date=availability_start_date)
@@ -706,17 +704,17 @@ class UI_Interface:
             Label(PWparent, text="Not editable if tool was already available").grid(row=4, column=3, sticky=W)
 
         # Date entry end date
-        availability_end_date= availability_pair_dict[len(availability_pair_dict)-1][1]
+        availability_end_date= Availability_Pair_List[len(Availability_Pair_List)-1][1]
         self.availability_end_date_str = StringVar()
         end_dateentry = self.add_date_entry(
             PWparent, self.availability_end_date_str, row=5, column=1, columnspan=2, sticky=W, date=availability_end_date)
-        if len(availability)>2:
+        if len(Availability_Pair_List)>1:
             end_dateentry.config(state=DISABLED)
             Label(PWparent, text="Not editable if tool was already booked").grid(row=5, column=3, sticky=W)
             
 
         # View bookings
-        Button(PWparent, text='View Bookings',command=lambda: self.view_bookings_UI(availability_pair_dict)).grid(row=6, column=1, columnspan=2, sticky=W)
+        Button(PWparent, text='View Bookings',command=lambda: self.view_bookings_UI(Availability_Pair_List)).grid(row=6, column=1, columnspan=2, sticky=W)
 
         # Custom GetImagesWidget
         self.files_widget = GetImagesWidget(PWparent, empty_message='Add Photo', max_items=5)
@@ -732,8 +730,9 @@ class UI_Interface:
         
 
 
-        # must check for the difference in images added in the actual process
+        PWparent.grid(ipadx=50, ipady=30, padx=5, pady=5)
         self.UI_root.mainloop()
+        # must check for the difference in images added in the actual process
 
     def view_bookings_UI(self, availability_Pair_dict):
             booked_dates = list(tuple(availability_Pair_dict))
