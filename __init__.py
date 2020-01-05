@@ -376,7 +376,10 @@ class UI_Interface:
 
     def delete_images(self, image_path_list):
         for image in image_path_list:
-            os.remove(image)
+            try:
+                os.remove(image)
+            except:
+                pass
 
     def pack_availability_dates_DB_READY(self, availability_list_pair):
         pair_list = availability_list_pair
@@ -712,7 +715,7 @@ class UI_Interface:
             _message = Label(PWparent, text="Not editable if tool was once already available")
             _message.grid(row=4, column=3, sticky=W)
         # Date entry end date
-        end_datetime= Availability_Pair_List[len(Availability_Pair_List)-1][1]
+        end_datetime= Availability_Pair_List[0][1]
         end_dateentry = self.place_date_entry_get_entry(
             PWparent,
             end_date_StrVar,
@@ -743,8 +746,8 @@ class UI_Interface:
         images_widget.automatic__file_input(images_path_list)
         # Get Tool ID number
         tool_ID = tool_information_dict.get("Unique_Item_Number")
-        # Var Dictionary# need to add item process_State
-        VariableDict= { 
+        # Var Dictionary
+        VariableDict = { 
             "Tool_ID":tool_ID,
             "Tool_Name":toolname_StrVar,
             "Description_Box":description_box,
@@ -754,7 +757,7 @@ class UI_Interface:
             "End_Date":end_date_StrVar,
             "Images_Widget":images_widget,
             "Process_State":process_state_StrVar,
-            "Original_Availability_Pair_List": Availability_Pair_List,
+            "Original_Availability_Pair_List":Availability_Pair_List,
             "Update":True
         }
         # Buttons
@@ -882,10 +885,7 @@ class UI_Interface:
                 destination = image
             images_db_list+=destination + '#{@!#'
         # try to delete unused images
-        try:
-            self.delete_images(removed_list)
-        except:
-            pass
+        self.delete_images(removed_list)
         return images_db_list # returns a single string with all paths, ready to be saved on a DB
 
     def get_savable_int_price(self, __price):
