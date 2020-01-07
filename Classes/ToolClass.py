@@ -36,34 +36,23 @@ class ToolClass:
             tool_details.append(kwargv.pop(i))
         if len(kwargv) > 1:
             self.tool_class_error_buffer.append(
-                "ERROR - Please Update the tool register method to match the given kwargv")
+                "ERROR - Unknown kwards were passed into the register tool method")
         else:
             self.DB_Link.data_entry(tool_details)
 
-    def update_tool(self, **kw):
-        tool_ID = kw.pop("tool_ID", "0")
+    def update_tool(self, **kwargv):
         self.DB_Link.select_table(self.inventory_table)
-        tool_info = (
-            tool_ID,
-            kw.pop("item_name", "None"),
-            kw.pop("half_day_fee", 0),
-            kw.pop("full_day_fee", 0),
-            kw.pop("description", "None"),
-            kw.pop("availability", "None"),
-            kw.pop("item_process_state", "Error"),
-            self.fetched_user_dictionary.get('Unique_User_ID'),
-            kw.pop("photos", "")
-        )
-        if len(kw) > 1:
-            self.tool_class_error_buffer.append(
-                "ERROR - Please Update the tool updater method to match the given kw")
-        _updated_tool_dict = zip(self.Inventory_Table_Index, tool_info)
+        tool_ID = kwargv.pop("Unique_Item_Number", "0")
         indentifying_expr = f"Unique_Item_Number = '{tool_ID}'"
-        for element in _updated_tool_dict:
-            column_name, updated_item = element
-            replace_with_expr = f"{column_name} = '{updated_item}'"
+        for column_name in kwargv:
+            updated_item = kwargv.get(column_name)
+            if type(updated_item) == str:
+                replace_with_expr = f"{column_name} = '{updated_item}'"
+            else:
+                replace_with_expr = f"{column_name} = {updated_item}"
             self.DB_Link.update_database(
-                indentifying_expr, replace_with_expr)
+                indentifying_expr, replace_with_expr
+            )
 
     def delete_tool(self, tool_ID="0"):
         self.DB_Link.select_table(self.inventory_table)
@@ -71,7 +60,6 @@ class ToolClass:
         self.DB_Link.delete_line(indentifying_expr)
 
     def fetch_user_listed_inventory(self, user_unique_id):
-        #user_unique_id = self.fetched_user_dictionary.get('Unique_User_ID')
         self.DB_Link.select_table(self.inventory_table)
         __list_results = self.DB_Link.fetch_lines_from_db(
             f"Unique_User_ID = '{user_unique_id}'")  # Returns list with all the inventory of a given user
