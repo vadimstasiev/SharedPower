@@ -2,7 +2,7 @@ import sqlite3
 from tkinter import Image  # for the image type
 
 
-class DatabaseInterface:
+class DatabaseInterfaceClass:
 
     # the Constructor will automatically create AND/OR connect to the database file
     def __init__(self, __databaseName="database"):
@@ -15,13 +15,13 @@ class DatabaseInterface:
         self.close_database()
 
     def create_table_from_tuple(self, __name_of_table: str, __table_column_values: tuple):
+        query = "CREATE TABLE IF NOT EXISTS " + __name_of_table + \
+            self.sqlite_query_param_builder(__table_column_values)
         try:
-            self.dbCursor.execute("CREATE TABLE IF NOT EXISTS " + __name_of_table +
-                                  self.sqlite_query_param_builder(__table_column_values))
+            self.dbCursor.execute(query)
         except:
             self.db_class_error_buffer.append("ERROR - Table failed to create")
-            self.db_class_error_buffer.append("Query used: CREATE TABLE IF NOT EXISTS " + __name_of_table +
-                                              self.sqlite_query_param_builder(__table_column_values))
+            self.db_class_error_buffer.append(query)
         self.dbConnection.commit()
         return self.create_intex_list_of_columns(__table_column_values)
 
@@ -37,33 +37,25 @@ class DatabaseInterface:
     def select_table(self, __selected_table: str):
         self.selected_table = __selected_table
 
-    def print_all(self):
-        self.dbCursor.execute("SELECT * FROM " + self.selected_table)
-        print("#"*100)
-        [print(row) for row in self.dbCursor.fetchall()]
-        print("#"*100)
-
     def data_entry(self, argv: tuple):
+        query = "INSERT INTO " + self.selected_table + \
+            " VALUES " + str(tuple(argv))
         try:
-            self.dbCursor.execute(
-                "INSERT INTO " + self.selected_table + " VALUES " + str(tuple(argv)))
+            self.dbCursor.execute(query)
             self.dbConnection.commit()
-
         except:
             self.db_class_error_buffer.append(
                 "Error - Make sure you are passing in enough parameters to match the table where the data is being entered")
-            self.db_class_error_buffer.append(
-                "Query used: INSERT INTO " + self.selected_table + " VALUES " + str(tuple(argv)))
+            self.db_class_error_buffer.append(query)
 
     # e.g. __identifying_exp = "Value3 = 342.54 AND Value4 = 'Cookie Master'"
     def fetch_lines_from_db(self, __identifying_exp: str):
+        query = "SELECT * FROM " + self.selected_table + " WHERE " + __identifying_exp
         try:
-            self.dbCursor.execute(
-                "SELECT * FROM " + self.selected_table + " WHERE " + __identifying_exp)
+            self.dbCursor.execute(query)
         except:
             self.db_class_error_buffer.append("ERROR Executing SQLite Query")
-            self.db_class_error_buffer.append(
-                "Query used: SELECT * FROM " + self.selected_table + " WHERE " + __identifying_exp)
+            self.db_class_error_buffer.append(query)
         __result_list = self.dbCursor.fetchall()
         return __result_list
 
@@ -81,10 +73,9 @@ class DatabaseInterface:
 
     # e.g. __identifying_exp = "Value3 = 342.54 AND Value4 = 'Cookie Master'"
     def delete_line(self, __identifying_exp):
-        query = ""
+        query = "DELETE FROM " + self.selected_table + \
+            " WHERE " + str(__identifying_exp)
         try:
-            query = "DELETE FROM " + self.selected_table + \
-                " WHERE " + str(__identifying_exp)
             self.dbCursor.execute(query)
         except:
             self.db_class_error_buffer.append("ERROR Executing SQLite Query")
@@ -99,7 +90,7 @@ class DatabaseInterface:
             self.db_class_error_buffer.append(
                 "ERROR Executing custom SQLite Query")
             self.db_class_error_buffer.append(
-                str("Query used:"+__custom_query))
+                str("Custom Query used: "+__custom_query))
 
     def close_database(self):
         try:

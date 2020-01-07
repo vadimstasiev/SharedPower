@@ -1,4 +1,4 @@
-from tkinter import Tk, Frame, Button, PhotoImage
+from tkinter import Tk, Frame, Button, PhotoImage, LabelFrame
 from tkinter import messagebox
 from tkinter.filedialog import askopenfilename
 
@@ -128,7 +128,6 @@ class GetFilesWidget(Frame):
         self.refresh__ADD_button()
 
     def get_difference(self):
-        #self.files_path_str_list == list(tuple(self._original_SET_list))
         added = []
         for i in self.files_path_str_list:
             if i not in self._original_SET_list:
@@ -173,6 +172,22 @@ class GetImagesWidget(GetFilesWidget):
         filepath_button.config(image="")
         GetFilesWidget.onclick_DEL(self, parent, filepath_button)
         self.removed_items.append(filepath_button.path_holder)
+
+
+class DisplayImagesWidget(GetImagesWidget):
+    def __init__(self, master, **kwargs):
+        GetImagesWidget.__init__(self, master, **kwargs)
+
+    def place__fileFrame(self):
+        fileFrame = Frame(self)
+        self.fileFrameList.append(fileFrame)
+        filepath_button = PathButton(fileFrame, text=self.empty_message)
+        self.filePathButtonList.append(filepath_button)
+        filepath_button.grid(sticky="w")
+        __i = 0
+        for i in self.fileFrameList:
+            i.grid(row=0, padx=5, column=__i, sticky="w")
+            __i += 1
 
 
 if __name__ == "__main__":
