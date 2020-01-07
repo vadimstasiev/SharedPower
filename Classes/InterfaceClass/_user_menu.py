@@ -23,6 +23,7 @@ def menu_user_options_UI(self):
             ("Register tool", self.register_tool_UI),
             ("View Listed Inventory", self.view_listed_inventory_UI),
             ("Search for tools", None),
+            ("View all Inventory", self.user_view_all_tools_UI),
             ("View current orders", None),
             ("View Purchase History", None),
             ("View next Invoice", None),

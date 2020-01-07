@@ -59,6 +59,16 @@ class DatabaseInterfaceClass:
         __result_list = self.dbCursor.fetchall()
         return __result_list
 
+    def fetch_all_lines_from_db(self):
+        query = "SELECT * FROM " + self.selected_table
+        try:
+            self.dbCursor.execute(query)
+        except:
+            self.db_class_error_buffer.append("ERROR Executing SQLite Query")
+            self.db_class_error_buffer.append(query)
+        __result_list = self.dbCursor.fetchall()
+        return __result_list
+
     # e.g. UPDATE employees SET lastname = 'Smith' WHERE employeeid = 3
     def update_database(self, __identifying_exp: str, __replace_with):
         query = ""

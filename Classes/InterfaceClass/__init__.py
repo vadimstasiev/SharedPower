@@ -3,9 +3,13 @@ from tkinter import Tk
 from tkinter import messagebox
 
 # Import local classes
-from Classes.DatabaseInterfaceClass import DatabaseInterfaceClass
-from Classes.UserClass import UserClass
-from Classes.ToolClass import ToolClass
+try:  # Otherwise pylint complains
+    from Classes.DatabaseInterfaceClass import DatabaseInterfaceClass
+    from Classes.UserClass import UserClass
+    from Classes.ToolClass import ToolClass
+    from Classes.OrderClass import OrderClass
+except:
+    pass
 
 
 class UI_Interface:
@@ -14,6 +18,7 @@ class UI_Interface:
         self.db_link = DatabaseInterfaceClass("Database")
         self.user_instance = UserClass(self.db_link)
         self.tool_instance = ToolClass(self.db_link)
+        self.order_instance = OrderClass(self.db_link)
         self.buffered_errors = []
         self.outputed_errors_list = []
         self.image_references = []
@@ -35,38 +40,18 @@ class UI_Interface:
         add_menu_bar_UI_1,
         add_menu_bar_UI_2,
         add_menu_bar_UI_3,
-        add_menu_bar_UI_4
+        add_menu_bar_UI_4,
+        contact_admin,
+        quit
     )
     from ._user_menu import menu_user_options_UI
     # , view_individual_tool_UI
-    from ._view_edit_inventory import view_listed_inventory_UI, display_list_tool_UI, owner_edit_view_individual_tool_UI
+    from ._view_edit_inventory import view_listed_inventory_UI, display_list_tool_UI, owner_edit_view_individual_tool_UI, delete_tool
+    from ._book_tools import user_view_all_tools_UI, user_display_list_tool_UI, user_book_tool_UI, display_horizontal_labels, user_view_tool_UI
     from ._image_related_functions import generate_PhotoImage_list, unpack_db_images_path, delete_images, get_image_paths_str_DB_ready
     from ._date_related_functions import view_bookings_Calendar_UI
     from ._type_conversion import get_savable_int_price, get_displayable_price, datetime_to_string, string_to_datetime
     from ._error_display import get_buffered_user_errors, generate_output_errors_UI, clear_errors
-
-    def delete_tool(self, tool_ID, images_to_delete):
-        answer = messagebox.askyesnocancel(
-            "Delete Tool Listing",
-            "Are you sure that you want to remove this listing?",
-            icon='warning'
-        )
-        if answer == 1:
-            self.user_instance.delete_tool(tool_ID)
-            self.delete_images(images_to_delete)
-            self.go_back_menu()
-
-    ##### random methods for Class functionality #####
-
-    def contact_admin(self):
-        print("Contact Admin")
-        # IDK what to do here, do something fancy lol
-        # Can add message inbox to admin's personal db for that stuff, logs, etc
-        # Can also create an interface for an admin account
-
-    def quit(self):
-        self.root.destroy()
-        self.root.quit()
 
 
 if __name__ == '__main__':

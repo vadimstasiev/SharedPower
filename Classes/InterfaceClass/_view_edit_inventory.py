@@ -1,8 +1,11 @@
 import datetime
-from tkinter import Label, LabelFrame, Entry, Text, Button, StringVar, OptionMenu
-from Classes.tkinterwidgets.scrollablecontainer import ScrollableContainer
-from Classes.tkinterwidgets.getfileswidget import GetImagesWidget, DisplayImagesWidget
-from Classes.DatabaseInterfaceClass import DatabaseInterfaceClass
+from tkinter import Label, LabelFrame, Entry, Text, Button, StringVar, OptionMenu, messagebox
+try:  # Otherwise pylint complains
+    from Classes.tkinterwidgets.scrollablecontainer import ScrollableContainer
+    from Classes.tkinterwidgets.getfileswidget import GetImagesWidget, DisplayImagesWidget
+    from Classes.DatabaseInterfaceClass import DatabaseInterfaceClass
+except:
+    pass
 
 
 def view_listed_inventory_UI(self):
@@ -100,22 +103,26 @@ def display_list_tool_UI(self, __parent, result_item, **kw):
     item_descrition.insert('end', _desc)
     item_descrition.config(state='disabled')
     # View/Edit item button
-    viewB = Button(PWparent,
-                   text="View Tool",
-                   command=lambda: self.owner_edit_view_individual_tool_UI(Item_Dictionary, read_only=True))
-    viewB.grid(column=0, row=4, columnspan=2, pady=10, ipadx=40, ipady=2)
-    editB = Button(PWparent,
-                   text="Edit Tool",
-                   command=lambda: self.owner_edit_view_individual_tool_UI(Item_Dictionary))
-    editB.grid(column=2, row=4, columnspan=2, pady=10, ipadx=40, ipady=2)
-    PWparent.grid(ipadx=50, ipady=30, padx=5, pady=5)
+    viewB = Button(
+        PWparent,
+        text="View Tool",
+        command=lambda: self.owner_edit_view_individual_tool_UI(Item_Dictionary, read_only=True))
+    viewB.grid(column=30, row=0, rowspan=2, pady=10,
+               ipadx=40, ipady=2, sticky='we')
+    editB = Button(
+        PWparent,
+        text="Edit Tool",
+        command=lambda: self.owner_edit_view_individual_tool_UI(Item_Dictionary))
+    editB.grid(column=30, row=2, rowspan=2, pady=10,
+               ipadx=40, ipady=2, sticky='we')
+    PWparent.grid(ipadx=50, ipady=30, padx=5, pady=5, sticky='we')
 
 
 def owner_edit_view_individual_tool_UI(self, Item_Dictionary, read_only=False):
     self.go_back_menu = self.view_listed_inventory_UI
     self.reset_window()
     self.root.resizable(width=False, height=False)
-    self.root.title("Shared Power - Edit Tool")
+    self.root.title("Shared Power - Tool")
     self.add_menu_bar_UI_4()
     # create parent
     LBtext = "Edit Tool: " + Item_Dictionary.get("Item_Name")
@@ -251,115 +258,13 @@ def owner_edit_view_individual_tool_UI(self, Item_Dictionary, read_only=False):
     self.root.mainloop()
 
 
-# def view_individual_tool_UI(self, Item_Dictionary):
-#     images_path_list = self.unpack_db_images_path(
-#         Item_Dictionary.get('Tool_Photos', ''))
-#     self.go_back_menu = self.view_listed_inventory_UI
-#     self.reset_window()
-#     self.root.resizable(width=False, height=False)
-#     self.root.title("Shared Power - Edit Tool")
-#     self.add_menu_bar_UI_4()
-#     # create parent
-#     LBtext = "View Tool: " + Item_Dictionary.get("Item_Name")
-#     PWparent = LabelFrame(
-#         self.root_frame,
-#         text=LBtext
-#     )
-#     # StrVars
-#     toolname_StrVar = StringVar()
-#     half_rate_StrVar = StringVar()
-#     full_rate_StrVar = StringVar()
-#     start_date_StrVar = StringVar()
-#     end_date_StrVar = StringVar()
-#     process_state_StrVar = StringVar()
-#     # Generate Labels and Entries
-#     _, entries_list = self.generate_labels_and_entries_UI(PWparent, [
-#         ("Tool Name:", toolname_StrVar),  # 0
-#         ("Description:", None),  # 1
-#         ("Half day rate:", half_rate_StrVar),  # 2
-#         ("Full Day Rate:", full_rate_StrVar),  # 3
-#         ("Availability start date:", None),  # 4
-#         ("Availablity end date:", None),  # 5
-#         ("Dates Booked:", None),  # 6
-#         ("Item Process State:", None),  # 7
-#         ("Choose Photo:", None),  # 8
-#     ])
-#     # Fill the empty Entries
-#     entries_list[0].insert(0, Item_Dictionary.get("Item_Name"))
-#     entries_list[2].insert(0, self.get_displayable_price(
-#         Item_Dictionary.get("Half_Day_Fee")))
-#     entries_list[3].insert(0, self.get_displayable_price(
-#         Item_Dictionary.get("Full_Day_Fee")))
-#     # Description Textbox
-#     description_box = Text(PWparent, wrap='word', height=10, width=80)
-#     description_box.grid(row=1, column=1, columnspan=5)
-#     _desc = Item_Dictionary.get('Description', "error").replace(
-#         '\\t', '').replace('\\n', ' \n').replace("''", "'")
-#     description_box.insert('end', _desc)
-#     # Get Availability List
-#     Availability_Pair_List = self.unpack_dates_from_DB(
-#         Item_Dictionary.get("Availability", ''))
-#     # Date entry start date
-#     start_datetime = Availability_Pair_List[0][0]
-#     start_dateentry = self.place_date_entry_get_entry(
-#         PWparent,
-#         start_date_StrVar,
-#         row=4, column=1,
-#         columnspan=2, sticky='w',
-#         date=start_datetime
-#     )
-#     # Date entry end date
-#     end_datetime = Availability_Pair_List[0][1]
-#     end_dateentry = self.place_date_entry_get_entry(
-#         PWparent,
-#         end_date_StrVar,
-#         row=5, column=1,
-#         columnspan=2, sticky='w',
-#         date=end_datetime
-#     )
-#     # View bookings
-#     _viewbookingsB = Button(
-#         PWparent,
-#         text='View Bookings',
-#         command=lambda: self.view_bookings_Calendar_UI(Availability_Pair_List)
-#     )
-#     _viewbookingsB.grid(row=6, column=1, columnspan=2, sticky='w')
-#     # Dropdown select
-#     choices = {'with owner', 'with depot', 'with user',
-#                'with insurance', 'being processed'}
-#     default_selection = Item_Dictionary.get(
-#         'Item_Process_State', 'Error')
-#     process_state_StrVar.set(default_selection)
-#     dropdown_select = OptionMenu(PWparent, process_state_StrVar, *choices)
-#     dropdown_select.grid(row=7, column=1, columnspan=2, sticky='w', pady=5)
-#     # Custom GetImagesWidget
-#     images_widget = DisplayImagesWidget(
-#         PWparent, empty_message='No Photo', max_items=3)
-#     images_widget.grid(row=8, column=1, columnspan=2, sticky='w')
-#     images_widget.automatic__file_input(images_path_list)
-#     # Disable input on EVERYTHING
-#     for entry in entries_list:
-#         if type(entry) == type(Entry()):
-#             entry.config(state='disabled')
-#     description_box.config(state='disabled')
-#     start_dateentry.config(state='disabled')
-#     end_dateentry.config(state='disabled')
-#     dropdown_select.config(state='disabled')
-#     # Get Tool ID number
-#     tool_ID = Item_Dictionary.get("Unique_Item_Number")
-#     # No Buttons so that I can reuse this for displaying the tools to the customers
-#     # With booking system OR NOT aactually we'll see i might make that separate
-#     # _updateinfoB = Button(
-#     #     PWparent,
-#     #     text="Edit Tool Information",
-#     #     command=lambda: self.owner_edit_view_individual_tool_UI(Item_Dictionary)
-#     # )
-#     # _updateinfoB.grid(column=5, ipadx=10, ipady=5, sticky='e')
-#     # _removelisting = Button(
-#     #     PWparent,
-#     #     text="Remove Tool Listing",
-#     #     command=lambda:self.delete_tool(tool_ID, images_path_list),
-#     # )
-#     # _removelisting.grid(column=5, ipadx=10, ipady=5, sticky='e')
-#     PWparent.grid(ipadx=50, ipady=30, padx=5, pady=5)
-#     self.root.mainloop()
+def delete_tool(self, tool_ID, images_to_delete):
+    answer = messagebox.askyesnocancel(
+        "Delete Tool Listing",
+        "Are you sure that you want to remove this listing?",
+        icon='warning'
+    )
+    if answer == 1:
+        self.user_instance.delete_tool(tool_ID)
+        self.delete_images(images_to_delete)
+        self.go_back_menu()

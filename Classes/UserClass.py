@@ -18,6 +18,7 @@ class UserClass:
             "Phone_Number", int,
             "Home_Address", str,
             "Post_Code", str,
+            "Town", str,
             "Email_Address", str,
             "Password_Hash", str,
             "Balance", int,
@@ -55,8 +56,8 @@ class UserClass:
             # Gets the first result, there should only be one
             __fetched_user_details = __list_line_results[0]
             self.User_Dictionary = dict(
-                zip(self.User_Details_Table_Index, __fetched_user_details))
-            # print(self.User_Dictionary)
+                zip(self.User_Details_Table_Index, __fetched_user_details)
+            )
             _User_Dict_Was_Updated = True
             if(len(__list_line_results) > 1):
                 self.DB_Link.db_class_error_buffer.append(
@@ -64,6 +65,24 @@ class UserClass:
         except:
             pass
         return _User_Dict_Was_Updated
+
+    def get_User_Dictionary_by_ID(self, User_ID=0):
+        User_Dict = {}
+        try:
+            self.DB_Link.select_table(self.user_details_table)
+            __list_line_results = self.DB_Link.fetch_lines_from_db(
+                f"Unique_User_ID = '{User_ID}'")
+            # Gets the first result, there should only be one
+            __fetched_user_details = __list_line_results[0]
+            User_Dict = dict(
+                zip(self.User_Details_Table_Index, __fetched_user_details)
+            )
+            if(len(__list_line_results) > 1):
+                self.DB_Link.db_class_error_buffer.append(
+                    "Database ERROR - There is more than 1 match for the given User_ID")
+        except:
+            pass
+        return User_Dict
 
     def check_password(self, __email: str, __password: str):
         __byte_str_pw = __password.encode("utf-8")

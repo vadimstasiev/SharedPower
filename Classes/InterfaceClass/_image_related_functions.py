@@ -1,7 +1,10 @@
 import os
 import shutil
 import uuid
-from Classes.tkinterwidgets.getfileswidget import GetImagesWidget
+try:  # Otherwise pylint complains
+    from Classes.tkinterwidgets.getfileswidget import GetImagesWidget
+except:
+    pass
 from tkinter import PhotoImage
 
 

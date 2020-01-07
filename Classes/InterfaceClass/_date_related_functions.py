@@ -1,6 +1,9 @@
 from tkinter import Toplevel
-from Classes.tkinterwidgets.calendar_ import Calendar
-from Classes.DatabaseInterfaceClass import DatabaseInterfaceClass
+try:  # Otherwise pylint complains
+    from Classes.tkinterwidgets.calendar_ import Calendar
+    from Classes.DatabaseInterfaceClass import DatabaseInterfaceClass
+except:
+    pass
 
 
 def view_bookings_Calendar_UI(self, availability_Pair_dict):

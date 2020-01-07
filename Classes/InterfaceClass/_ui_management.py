@@ -141,3 +141,12 @@ def add_menu_bar_UI_4(self):   # used for the sub pages of the tool users/owners
     __submenu.add_command(label="Quit", command=self.quit)
     self.menubar.add_cascade(label="Options", menu=__submenu)
     self.root.config(menu=self.menubar)
+
+
+def contact_admin(self):
+    print("Contact Admin")
+
+
+def quit(self):
+    self.root.destroy()
+    self.root.quit()

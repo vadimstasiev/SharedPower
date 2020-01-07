@@ -19,6 +19,7 @@ def register_user_UI(self):
     birthday_date_StrVar = StringVar()
     post_code_StrVar = StringVar()
     home_address_StrVar = StringVar()
+    town_StrVar = StringVar()
     email_StrVar = StringVar()
     password_StrVar = StringVar()
     confirm_password_StrVar = StringVar()
@@ -30,6 +31,7 @@ def register_user_UI(self):
         ("Date of Birth: ", None),
         ("Post Code: ", post_code_StrVar),
         ("Home Address:", home_address_StrVar),
+        ("Town:", town_StrVar),
         ("Email: ", email_StrVar),
         ("Password: #{type=pw", password_StrVar),
         ("Confirm Password: #{type=pw", confirm_password_StrVar),
@@ -44,13 +46,13 @@ def register_user_UI(self):
         PWparent,
         "Tool User",
         "Tool Owner",
-        row=9,
+        row=10,
         sticky='w'
     )
     # Files Widget
     images_widget = GetImagesWidget(
         PWparent, empty_message='Add Photo', max_items=1)
-    images_widget.grid(row=10, column=1, columnspan=2, pady=4, sticky='w')
+    images_widget.grid(row=11, column=1, columnspan=2, pady=4, sticky='w')
     # Class Variables:
     Variables_Dict = {
         "First_Name": first_name_StrVar,
@@ -59,6 +61,7 @@ def register_user_UI(self):
         "Date_of_Birth": birthday_date_StrVar,
         "Home_Address": home_address_StrVar,
         "Post_Code": post_code_StrVar,
+        "Town": town_StrVar,
         "Email_Address": email_StrVar,
         "Password": password_StrVar,
         "Confirm_Password": confirm_password_StrVar,

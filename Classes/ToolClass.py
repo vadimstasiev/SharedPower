@@ -1,5 +1,8 @@
 import uuid
-from Classes.DatabaseInterfaceClass import DatabaseInterfaceClass
+try:  # Otherwise pylint complains
+    from Classes.DatabaseInterfaceClass import DatabaseInterfaceClass
+except:
+    pass
 
 
 class ToolClass:
@@ -62,8 +65,13 @@ class ToolClass:
     def fetch_user_listed_inventory(self, user_unique_id):
         self.DB_Link.select_table(self.inventory_table)
         __list_results = self.DB_Link.fetch_lines_from_db(
-            f"Unique_User_ID = '{user_unique_id}'")  # Returns list with all the inventory of a given user
-        return __list_results
+            f"Unique_User_ID = '{user_unique_id}'")
+        return __list_results  # Returns list with all the inventory of a given user
+
+    def fetch_all_listed_inventory(self):
+        self.DB_Link.select_table(self.inventory_table)
+        __list_results = self.DB_Link.fetch_all_lines_from_db()
+        return __list_results  # Returns list with all the inventory
 
 
 if __name__ == '__main__':
