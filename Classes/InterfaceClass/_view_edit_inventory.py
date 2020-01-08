@@ -50,40 +50,16 @@ def display_list_tool_UI(self, __parent, result_item, **kw):
     if len(returned_images) > 0:
         # Display first image
         Label(PWparent, image=returned_images[0]).grid(
-            rowspan=4, padx=20, pady=10)
-    # Labels to display
-    _list = [
+            column=30, rowspan=4, padx=20, pady=10)
+    # Display labels in a 2 row x X column configuration
+    self.display_horizontal_labels(PWparent, [
         'Half day rate: ' +
         self.get_displayable_price(Item_Dictionary.get('Half_Day_Fee')),
         'Full day rate: ' +
         self.get_displayable_price(Item_Dictionary.get('Full_Day_Fee')),
         'Current process state: ' + Item_Dictionary.get('Item_Process_State'),
         'Item Number: ' + Item_Dictionary.get('Unique_Item_Number')
-    ]
-    # Display labels in a 2 row x X column configuration
-    _row_end = 1
-    _column_offset = 1
-    _list_len = len(_list)/2 + _column_offset
-    _column_start = _column_offset
-    _column_end = int(_list_len)
-    if _column_end != _list_len:
-        case = "uneven"
-        _column_end += 1
-    else:
-        case = "even"
-
-    def add_Label(__text, _column, _row):
-        Label(PWparent, text=__text).grid(
-            row=_row, column=_column, padx=30, sticky="nw")
-    _index = 0
-    for _i in range(_column_start, _column_end):
-        for _j in range(0, _row_end+1):
-            if case == "even":
-                add_Label(_list[_index], _i, _j)
-            elif case == "uneven":
-                if(_i != _column_end):
-                    add_Label(_list[_index], _i, _j)
-            _index += 1
+    ])
     # Place item description
     item_descrition = Text(PWparent, wrap='word', height=3, width=50)
     item_descrition.grid(row=3, column=1, columnspan=100)
@@ -107,13 +83,13 @@ def display_list_tool_UI(self, __parent, result_item, **kw):
         PWparent,
         text="View Tool",
         command=lambda: self.owner_edit_view_individual_tool_UI(Item_Dictionary, read_only=True))
-    viewB.grid(column=30, row=0, rowspan=2, pady=10,
+    viewB.grid(column=0, row=0, rowspan=2, pady=10,
                ipadx=40, ipady=2, sticky='we')
     editB = Button(
         PWparent,
         text="Edit Tool",
         command=lambda: self.owner_edit_view_individual_tool_UI(Item_Dictionary))
-    editB.grid(column=30, row=2, rowspan=2, pady=10,
+    editB.grid(column=0, row=2, rowspan=2, pady=10,
                ipadx=40, ipady=2, sticky='we')
     PWparent.grid(ipadx=50, ipady=30, padx=5, pady=5, sticky='we')
 
@@ -134,6 +110,8 @@ def owner_edit_view_individual_tool_UI(self, Item_Dictionary, read_only=False):
     toolname_StrVar = StringVar()
     half_rate_StrVar = StringVar()
     full_rate_StrVar = StringVar()
+    pick_up_fee_StrVar = StringVar()
+    drop_off_fee_StrVar = StringVar()
     start_date_StrVar = StringVar()
     end_date_StrVar = StringVar()
     process_state_StrVar = StringVar()
@@ -143,11 +121,13 @@ def owner_edit_view_individual_tool_UI(self, Item_Dictionary, read_only=False):
         ("Description:", None),  # 1
         ("Half day rate:", half_rate_StrVar),  # 2
         ("Full Day Rate:", full_rate_StrVar),  # 3
-        ("Availability start date:", None),  # 4
-        ("Availablity end date:", None),  # 5
-        ("Dates Booked:", None),  # 6
-        ("Item Process State:", None),  # 7
-        ("Choose Photo:", None),  # 8
+        ("Pick Up Fee:", pick_up_fee_StrVar),  # 4
+        ("Drop Off Fee:", drop_off_fee_StrVar),  # 5
+        ("Availability start date:", None),  # 6
+        ("Availablity end date:", None),  # 7
+        ("Dates Booked:", None),  # 8
+        ("Item Process State:", None),  # 9
+        ("Choose Photo:", None),  # 10
     ])
     # Fill the empty Entries
     entries_list[0].insert(0, Item_Dictionary.get("Item_Name"))
@@ -155,6 +135,10 @@ def owner_edit_view_individual_tool_UI(self, Item_Dictionary, read_only=False):
         Item_Dictionary.get("Half_Day_Fee")))
     entries_list[3].insert(0, self.get_displayable_price(
         Item_Dictionary.get("Full_Day_Fee")))
+    entries_list[4].insert(0, self.get_displayable_price(
+        Item_Dictionary.get("Pick_Up_Fee")))
+    entries_list[5].insert(0, self.get_displayable_price(
+        Item_Dictionary.get("Drop_Off_Fee")))
     # Description Textbox
     description_box = Text(PWparent, wrap='word', height=10, width=80)
     description_box.grid(row=1, column=1, columnspan=5)
@@ -167,7 +151,7 @@ def owner_edit_view_individual_tool_UI(self, Item_Dictionary, read_only=False):
     start_dateentry = self.place_date_entry_get_entry(
         PWparent,
         start_date_StrVar,
-        row=4, column=1,
+        row=6, column=1,
         columnspan=2, sticky='w',
         date=start_datetime
     )
@@ -175,14 +159,14 @@ def owner_edit_view_individual_tool_UI(self, Item_Dictionary, read_only=False):
         start_dateentry.config(state='disabled')
         _message = Label(
             PWparent, text="Not editable if tool was once already available")
-        _message.grid(row=4, column=3, sticky='w')
+        _message.grid(row=6, column=3, sticky='w')
     # Date entry end date
     end_datetime = self.string_to_datetime(
         Item_Dictionary.get("Availability_End_Date"))
     end_dateentry = self.place_date_entry_get_entry(
         PWparent,
         end_date_StrVar,
-        row=5, column=1,
+        row=7, column=1,
         columnspan=2, sticky='w',
         date=end_datetime
     )
@@ -190,14 +174,14 @@ def owner_edit_view_individual_tool_UI(self, Item_Dictionary, read_only=False):
     #     end_dateentry.config(state='disabled')
     #     _message = Label(
     #         PWparent, text="Not editable if tool was once already booked")
-    #     _message.grid(row=5, column=3, sticky='w')
+    #     _message.grid(row=7, column=3, sticky='w')
     # View bookings
     _viewbookingsB = Button(
         PWparent,
         text='View Bookings',
         # command=lambda: self.view_bookings_Calendar_UI(Availability_Pair_List) # TODO NEED TO GET BOOKING SYSTEM DONE
     )
-    _viewbookingsB.grid(row=6, column=1, columnspan=2, sticky='w')
+    _viewbookingsB.grid(row=8, column=1, columnspan=2, sticky='w')
     # Dropdown select
     choices = {'with owner', 'with depot', 'with user',
                'with insurance', 'being processed'}
@@ -205,7 +189,7 @@ def owner_edit_view_individual_tool_UI(self, Item_Dictionary, read_only=False):
         'Item_Process_State', 'Error')
     process_state_StrVar.set(default_selection)
     dropdown_select = OptionMenu(PWparent, process_state_StrVar, *choices)
-    dropdown_select.grid(row=7, column=1, columnspan=2, sticky='w', pady=5)
+    dropdown_select.grid(row=9, column=1, columnspan=2, sticky='w', pady=5)
     # Custom GetImagesWidget
     images_path_list = self.unpack_db_images_path(
         Item_Dictionary.get('Tool_Photos', ''))
@@ -236,6 +220,8 @@ def owner_edit_view_individual_tool_UI(self, Item_Dictionary, read_only=False):
                 Description_Box=description_box,
                 Half_Day_Rate=half_rate_StrVar,
                 Full_Day_Rate=full_rate_StrVar,
+                Pick_Up_Fee=pick_up_fee_StrVar,
+                Drop_Off_Fee=drop_off_fee_StrVar,
                 Start_Date=start_date_StrVar,
                 End_Date=end_date_StrVar,
                 Images_Widget=images_widget,
@@ -251,7 +237,7 @@ def owner_edit_view_individual_tool_UI(self, Item_Dictionary, read_only=False):
         )
         _removelisting.grid(column=5, ipadx=10, ipady=5, sticky='e')
     # Place images_widget
-    images_widget.grid(row=8, column=1, columnspan=2, sticky='w')
+    images_widget.grid(row=10, column=1, columnspan=2, sticky='w')
     images_widget.automatic__file_input(images_path_list)
     # Place Parent
     PWparent.grid(ipadx=50, ipady=30, padx=5, pady=5)

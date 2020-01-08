@@ -145,7 +145,11 @@ def user_view_tool_UI(self, Item_Dictionary, Owner_Dictionary):
         'Half day rate: ' +
         self.get_displayable_price(Item_Dictionary.get('Half_Day_Fee')),
         'Full day rate: ' +
-        self.get_displayable_price(Item_Dictionary.get('Full_Day_Fee'))
+        self.get_displayable_price(Item_Dictionary.get('Full_Day_Fee')),
+        'Pick up fee: ' +
+        self.get_displayable_price(Item_Dictionary.get('Pick_Up_Fee')),
+        'Drop off fee: ' +
+        self.get_displayable_price(Item_Dictionary.get('Drop_Off_Fee'))
     ], start_row=0)
 
     self.display_horizontal_labels(PWparent, [

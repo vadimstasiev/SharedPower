@@ -15,12 +15,16 @@ def register_tool_UI(self):
     toolname_StrVar = StringVar()
     half_rate_StrVar = StringVar()
     full_rate_StrVar = StringVar()
+    pick_up_fee_StrVar = StringVar()
+    drop_off_fee_StrVar = StringVar()
     # Labels and entries
     self.generate_labels_and_entries_UI(PWparent, [
         ("Tool Name:", toolname_StrVar),
         ("Description:", None),
         ("Half day rate:", half_rate_StrVar),
         ("Full Day Rate:", full_rate_StrVar),
+        ("Pick Up Fee:", pick_up_fee_StrVar),
+        ("Drop Off Fee:", drop_off_fee_StrVar),
         ("Availablity start date:", None),
         ("Availablity end date:", None),
         ("Choose Photo:", None),
@@ -36,21 +40,23 @@ def register_tool_UI(self):
     # Start date Widget
     start_date_StrVar = StringVar()
     self.place_date_entry_get_entry(
-        PWparent, start_date_StrVar, row=4, column=1, columnspan=2, sticky='w')
+        PWparent, start_date_StrVar, row=6, column=1, columnspan=2, sticky='w')
     # End date Widget
     end_date_StrVar = StringVar()
     self.place_date_entry_get_entry(
-        PWparent, end_date_StrVar, row=5, column=1, columnspan=2, sticky='w')
+        PWparent, end_date_StrVar, row=7, column=1, columnspan=2, sticky='w')
     # Get Photo Widget
     images_widget = GetImagesWidget(
         PWparent, empty_message='Add Photo', max_items=3)
-    images_widget.grid(row=6, column=1, columnspan=2, sticky='w')
+    images_widget.grid(row=8, column=1, columnspan=2, sticky='w')
     # Variable Dictionary
     VariableDict = {
         "Tool_Name": toolname_StrVar,
         "Description_Box": description_box,
         "Half_Day_Rate": half_rate_StrVar,
         "Full_Day_Rate": full_rate_StrVar,
+        "Pick_Up_Fee": pick_up_fee_StrVar,
+        "Drop_Off_Fee": drop_off_fee_StrVar,
         "Start_Date": start_date_StrVar,
         "End_Date": end_date_StrVar,
         "Images_Widget": images_widget
@@ -80,6 +86,8 @@ def process_register_or_update_tool(self, _parent, **kw):  # TODO TODO TODO
     # Get day rates
     self.R_half_day_rate = str(kw.pop("Half_Day_Rate").get())
     self.R_full_day_rate = str(kw.pop("Full_Day_Rate").get())
+    self.R_pick_up_fee = str(kw.pop("Pick_Up_Fee").get())
+    self.R_drop_off_fee = str(kw.pop("Drop_Off_Fee").get())
     # Get or Set default Process State
     process_state = kw.pop("Process_State", StringVar()).get()
     if process_state != "":
@@ -104,6 +112,8 @@ def process_register_or_update_tool(self, _parent, **kw):  # TODO TODO TODO
             'Item_Name': self.R_tool_name,
             'Half_Day_Fee': self.get_savable_int_price(self.R_half_day_rate),
             'Full_Day_Fee': self.get_savable_int_price(self.R_full_day_rate),
+            'Pick_Up_Fee': self.get_savable_int_price(self.R_pick_up_fee),
+            'Drop_Off_Fee': self.get_savable_int_price(self.R_drop_off_fee),
             'Description': self.R_description,
             'Availability_Start_Date': R_start_date,
             'Availability_End_Date': R_end_date,

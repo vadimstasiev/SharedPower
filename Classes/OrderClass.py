@@ -22,8 +22,9 @@ class OrderClass:
             "Availability_Start_Date", str,
             "Availability_End_Date", str,
             "Customer_Feedback", str,
+            "Customer_Condition_Photos", str
         )
-        self.orders_table = "Tool_Inventory"
+        self.orders_table = "Orders_Table"
         self.orders_table_Index = self.DB_Link.create_table_from_tuple(
             self.orders_table, __order_table_column_values_tuple)
 

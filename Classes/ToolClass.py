@@ -19,6 +19,8 @@ class ToolClass:
             "Item_Name", str,
             "Half_Day_Fee", int,
             "Full_Day_Fee", int,
+            "Pick_Up_Fee", int,
+            "Drop_Off_Fee", int,
             "Description", str,
             "Availability_Start_Date", str,
             "Availability_End_Date", str,

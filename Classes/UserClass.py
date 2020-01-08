@@ -6,7 +6,6 @@ class UserClass:
 
     def __init__(self, db_link: DatabaseInterfaceClass):
         self.user_class_error_buffer = []
-        self.user_class_error_buffer = []
         self.DB_Link = db_link
 
         # Create tables if not already created:
