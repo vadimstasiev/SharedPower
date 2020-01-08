@@ -1,4 +1,6 @@
-# please install the following non-standard libraries: bcrypt, pillow (should no longer be needed) , tkcalendar (includes Babel which is needed)
+# please install the following non-standard libraries: bcrypt,  tkcalendar (includes Babel which is needed)
+# pip install bcrypt
+# pip install tkcalendar
 
 
 # Import local classes

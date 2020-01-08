@@ -92,6 +92,7 @@ def process_register_new_user(self, _parent, **kw):
     self.R_phone_number = str(kw.pop("Phone_Number").get())
     self.R_birthday_date = str(kw.pop("Date_of_Birth").get())
     self.R_home_address = str(kw.pop("Home_Address").get())
+    self.R_town = str(kw.pop("Town").get())
     self.R_post_code = str(kw.pop("Post_Code").get())
     self.R_email = str(kw.pop("Email_Address").get())
     self.R_password = str(kw.pop("Password").get())
@@ -113,6 +114,7 @@ def process_register_new_user(self, _parent, **kw):
             Date_of_Birth=self.R_birthday_date,
             Phone_Number=self.R_phone_number,
             Home_Address=self.R_home_address,
+            Town=self.R_town,
             Post_Code=self.R_post_code,
             Email_Address=self.R_email,
             Password=self.R_password,

@@ -62,7 +62,7 @@ def display_list_tool_UI(self, __parent, result_item, **kw):
     ])
     # Place item description
     item_descrition = Text(PWparent, wrap='word', height=3, width=50)
-    item_descrition.grid(row=3, column=1, columnspan=100)
+    item_descrition.grid(row=3, column=1, columnspan=2)
     # Get item description and trim it to fit the box
     _desc_amalgam = Item_Dictionary.get('Description', "error")
     _desc = _desc_amalgam.replace("\\n", " ").replace(

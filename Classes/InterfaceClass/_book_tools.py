@@ -71,7 +71,7 @@ def user_display_list_tool_UI(self, __parent, result_item, **kw):
     self.display_horizontal_labels(PWparent, _list)
     # Place item description
     item_descrition = Text(PWparent, wrap='word', height=3, width=50)
-    item_descrition.grid(row=3, column=1, pady=40, columnspan=100)
+    item_descrition.grid(row=3, column=2, pady=40, columnspan=2)
     # Get item description and trim it to fit the box
     _desc_amalgam = Item_Dictionary.get('Description', "error")
     _desc = _desc_amalgam.replace("\\n", " ").replace(
@@ -92,7 +92,7 @@ def user_display_list_tool_UI(self, __parent, result_item, **kw):
         PWparent,
         text="View Tool",
         command=lambda: self.user_view_tool_UI(Item_Dictionary, Owner_Dictionary))
-    viewB.grid(row=3, column=1, rowspan=2, pady=10,
+    viewB.grid(row=3, column=1, rowspan=2, padx=25, pady=10,
                ipadx=40, ipady=10, sticky='we')
     PWparent.grid(ipadx=50, ipady=30, padx=5, pady=5, sticky='we')
 
@@ -181,11 +181,6 @@ def user_view_tool_UI(self, Item_Dictionary, Owner_Dictionary):
     end_date_StrVar = StringVar()
     start_date_l = Label(PWparent, text="Start Date:")
     end_date_l = Label(PWparent, text="End Date:")
-    # Type of booking Half Day or Full Day select
-    choices = {'Half Day', 'Full Day'}
-    default_selection = 'Please Select'
-    type_of_booking_StrVar = StringVar()
-    type_of_booking_StrVar.set(default_selection)
 
     dateentry1 = self.place_date_entry_get_entry(PWparent, start_date_StrVar)
     dateentry2 = self.place_date_entry_get_entry(PWparent, end_date_StrVar)
@@ -204,7 +199,24 @@ def user_view_tool_UI(self, Item_Dictionary, Owner_Dictionary):
             dateentry1.grid_forget()
             end_date_l.grid_forget()
             dateentry2.grid_forget()
+            start_date_l.grid(row=7, column=0, sticky='w')
+            dateentry1.grid(row=7, column=1, columnspan=2, sticky='w')
+        choices = {'6:00-12:00', '12:00-18:00'}
+        default_selection = 'Please Select'
+        hours_StrVar = StringVar()
+        hours_StrVar.set(default_selection)
+        dropdown_select = OptionMenu(
+            PWparent,
+            hours_StrVar,  # TODO grab this
+            *choices
+        )
+        dropdown_select.grid(row=9, column=1, columnspan=2, sticky='w', pady=5)
 
+    # Type of booking Half Day or Full Day select
+    choices = {'Half Day', 'Full Day'}
+    default_selection = 'Please Select'
+    type_of_booking_StrVar = StringVar()
+    type_of_booking_StrVar.set(default_selection)
     dropdown_select = OptionMenu(
         PWparent,
         type_of_booking_StrVar,
@@ -220,7 +232,7 @@ def user_view_tool_UI(self, Item_Dictionary, Owner_Dictionary):
     images_widget = DisplayImagesWidget(
         PWparent, empty_message='Add Photo', max_items=3)
     # Get Tool ID number
-    images_widget.grid(row=10, column=1, columnspan=2, sticky='w')
+    images_widget.grid(row=11, column=1, columnspan=2, sticky='w')
     images_widget.automatic__file_input(images_path_list)
     # Place Parent
     PWparent.grid(ipadx=50, ipady=30, padx=5, pady=5)

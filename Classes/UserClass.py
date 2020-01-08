@@ -32,12 +32,12 @@ class UserClass:
         # the method "create_table_from_tuple" creates the tables and returns a list of the column values
         # similar to the lists above but without the datatypes in between
 
-    def register_tool(self, **kwargv):
+    def register(self, **kwargv):
         self.DB_Link.select_table(self.user_details_table)
         user_details = []
         hashed_password = self.generate_hashed_password(kwargv.pop('Password'))
         kwargv['Password_Hash'] = hashed_password
-        kwargv['Balance'] = 0
+        kwargv['Balance'] = 0  # TODO
         for i in self.User_Details_Table_Index:
             user_details.append(kwargv.pop(i))
         if len(kwargv) > 1:

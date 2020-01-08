@@ -157,3 +157,19 @@ def validate_register_tool_input(self):
     except:
         self.buffered_errors.append(
             "Please enter a valid price for the full day rate")
+    if self.R_pick_up_fee == 0:
+        self.buffered_errors.append(
+            "Please enter the pick up fee")
+    try:
+        price_dec(self.R_pick_up_fee)
+    except:
+        self.buffered_errors.append(
+            "Please enter a valid price for the pick up fee")
+    if self.R_drop_off_fee == 0:
+        self.buffered_errors.append(
+            "Please enter the drop off fee")
+    try:
+        price_dec(self.R_drop_off_fee)
+    except:
+        self.buffered_errors.append(
+            "Please enter a valid price for the drop off fee")

@@ -19,6 +19,7 @@ class OrderClass:
             "Pick_Up_Fee", str,
             "Drop_Off_Fee", str,
             "Order_Type", str,
+            "Order_Hours", str,
             "Availability_Start_Date", str,
             "Availability_End_Date", str,
             "Customer_Feedback", str,
