@@ -16,7 +16,7 @@ def view_listed_inventory_UI(self):
     self.add_menu_bar_UI_4()
     self.root.grid_rowconfigure(0, weight=1)
     self.root.grid_columnconfigure(0, weight=1)
-    self.root.minsize(900, 700)
+    self.root.minsize(1050, 700)
     sc = ScrollableContainer(self.root, bd=2, scroll='vertical')
     # Get Results
     User_ID = self.user_instance.get_user_unique_ID()
@@ -83,13 +83,13 @@ def display_list_tool_UI(self, __parent, result_item, **kw):
         PWparent,
         text="View Tool",
         command=lambda: self.owner_edit_view_individual_tool_UI(Item_Dictionary, read_only=True))
-    viewB.grid(column=0, row=0, rowspan=2, pady=10,
+    viewB.grid(column=0, row=0, rowspan=2, pady=10, padx=25,
                ipadx=40, ipady=2, sticky='we')
     editB = Button(
         PWparent,
         text="Edit Tool",
         command=lambda: self.owner_edit_view_individual_tool_UI(Item_Dictionary))
-    editB.grid(column=0, row=2, rowspan=2, pady=10,
+    editB.grid(column=0, row=2, rowspan=2, pady=10, padx=25,
                ipadx=40, ipady=2, sticky='we')
     PWparent.grid(ipadx=50, ipady=30, padx=5, pady=5, sticky='we')
 
@@ -179,7 +179,8 @@ def owner_edit_view_individual_tool_UI(self, Item_Dictionary, read_only=False):
     _viewbookingsB = Button(
         PWparent,
         text='View Bookings',
-        # command=lambda: self.view_bookings_Calendar_UI(Availability_Pair_List) # TODO NEED TO GET BOOKING SYSTEM DONE
+        command=lambda: self.view_bookings_Calendar_UI(
+            Item_Dictionary)  # TODO NEED TO GET BOOKING SYSTEM DONE
     )
     _viewbookingsB.grid(row=8, column=1, columnspan=2, sticky='w')
     # Dropdown select

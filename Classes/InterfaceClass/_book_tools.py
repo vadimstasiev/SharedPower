@@ -90,7 +90,7 @@ def user_display_list_tool_UI(self, __parent, result_item, **kw):
     # View Tool item button
     viewB = Button(
         PWparent,
-        text="View Tool",
+        text="View & Book",
         command=lambda: self.user_view_tool_UI(Item_Dictionary, Owner_Dictionary))
     viewB.grid(row=3, column=1, rowspan=2, padx=25, pady=10,
                ipadx=40, ipady=10, sticky='we')
@@ -173,9 +173,9 @@ def user_view_tool_UI(self, Item_Dictionary, Owner_Dictionary):
     _viewbookingsB = Button(
         PWparent,
         text='View Bookings',
-        # command=lambda: self.view_bookings_Calendar_UI(Availability_Pair_List) # TODO NEED TO GET BOOKING SYSTEM DONE
+        command=lambda: self.view_bookings_Calendar_UI(Item_Dictionary)
     )
-    _viewbookingsB.grid(row=5, column=1, columnspan=2, sticky='w')
+    _viewbookingsB.grid(row=6, column=1, columnspan=2, sticky='w')
     # Date entries vars and labels
     start_date_StrVar = StringVar()
     end_date_StrVar = StringVar()
@@ -188,30 +188,39 @@ def user_view_tool_UI(self, Item_Dictionary, Owner_Dictionary):
     dateentry1.grid_forget()
     dateentry2.grid_forget()
 
+    choices = {'6:00-12:00', '12:00-18:00'}
+    default_selection = 'Please Select'
+    hours_StrVar = StringVar()
+    hours_StrVar.set(default_selection)
+    times_select = OptionMenu(
+        PWparent,
+        hours_StrVar,  # TODO grab this
+        *choices
+    )
+
     def show_hide_date_input(ignoreevent):
         if(type_of_booking_StrVar.get() == 'Full Day'):
-            start_date_l.grid(row=7, column=0, sticky='w')
-            dateentry1.grid(row=7, column=1, columnspan=2, sticky='w')
-            end_date_l.grid(row=8, column=0, sticky='w')
-            dateentry2.grid(row=8, column=1, columnspan=2, sticky='w')
+            start_date_l.grid(row=8, column=0, sticky='w')
+            dateentry1.grid(row=8, column=1, columnspan=2, sticky='w')
+            end_date_l.grid(row=9, column=0, sticky='w')
+            dateentry2.grid(row=9, column=1, columnspan=2, sticky='w')
+            times_select.grid_forget()
+            start_date_l.config(text="Start Date:")
+
         if(type_of_booking_StrVar.get() == 'Half Day'):
             start_date_l.grid_forget()
+            start_date_l.config(text="Date:")
             dateentry1.grid_forget()
             end_date_l.grid_forget()
             dateentry2.grid_forget()
-            start_date_l.grid(row=7, column=0, sticky='w')
-            dateentry1.grid(row=7, column=1, columnspan=2, sticky='w')
-        choices = {'6:00-12:00', '12:00-18:00'}
-        default_selection = 'Please Select'
-        hours_StrVar = StringVar()
-        hours_StrVar.set(default_selection)
-        dropdown_select = OptionMenu(
-            PWparent,
-            hours_StrVar,  # TODO grab this
-            *choices
-        )
-        dropdown_select.grid(row=9, column=1, columnspan=2, sticky='w', pady=5)
+            start_date_l.grid(row=8, column=0, sticky='w')
+            dateentry1.grid(row=8, column=1, columnspan=2, sticky='w')
+            times_select.grid(row=10, column=1, columnspan=2,
+                              sticky='w', pady=5)
 
+    # Booking type Label
+    Label(PWparent, text="Booking type:").grid(
+        row=7, column=0, sticky='w', pady=5)
     # Type of booking Half Day or Full Day select
     choices = {'Half Day', 'Full Day'}
     default_selection = 'Please Select'
@@ -223,16 +232,17 @@ def user_view_tool_UI(self, Item_Dictionary, Owner_Dictionary):
         command=show_hide_date_input,
         *choices
     )
-    dropdown_select.grid(row=6, column=1, columnspan=2, sticky='w', pady=5)
+    dropdown_select.grid(row=7, column=1, columnspan=2, sticky='w', pady=5)
     # Submit button
-    Button(PWparent, text="Submit Booking")
+    BookB = Button(PWparent, text='Book Tool').grid(
+        row=11, column=1, columnspan=2, sticky='w', pady=5)
     # Custom GetImagesWidget
     images_path_list = self.unpack_db_images_path(
         Item_Dictionary.get('Tool_Photos', ''))
     images_widget = DisplayImagesWidget(
         PWparent, empty_message='Add Photo', max_items=3)
     # Get Tool ID number
-    images_widget.grid(row=11, column=1, columnspan=2, sticky='w')
+    images_widget.grid(row=5, column=1, columnspan=2, sticky='w')
     images_widget.automatic__file_input(images_path_list)
     # Place Parent
     PWparent.grid(ipadx=50, ipady=30, padx=5, pady=5)

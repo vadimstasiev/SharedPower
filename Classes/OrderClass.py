@@ -20,8 +20,8 @@ class OrderClass:
             "Drop_Off_Fee", str,
             "Order_Type", str,
             "Order_Hours", str,
-            "Availability_Start_Date", str,
-            "Availability_End_Date", str,
+            "Booking_Start_Day", str,
+            "Booking_End_Day", str,
             "Customer_Feedback", str,
             "Customer_Condition_Photos", str
         )
@@ -62,10 +62,16 @@ class OrderClass:
         indentifying_expr = f"Unique_Item_Number = '{order_ID}'"
         self.DB_Link.delete_line(indentifying_expr)
 
-    def fetch_orders(self, User_ID):
+    def fetch_orders_from_user_id(self, User_ID):
         self.DB_Link.select_table(self.orders_table)
         __list_results = self.DB_Link.fetch_lines_from_db(
             f"Unique_User_ID = '{User_ID}'")
+        return __list_results
+
+    def fetch_orders_from_tool_id(self, Tool_ID):
+        self.DB_Link.select_table(self.orders_table)
+        __list_results = self.DB_Link.fetch_lines_from_db(
+            f"Unique_Item_Number = '{Tool_ID}'")
         return __list_results
 
 

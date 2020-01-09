@@ -1,4 +1,5 @@
 # please install the following non-standard libraries: bcrypt,  tkcalendar (includes Babel which is needed)
+# put this in the python requirements
 # pip install bcrypt
 # pip install tkcalendar
 
