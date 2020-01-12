@@ -170,11 +170,13 @@ def owner_edit_view_individual_tool_UI(self, Item_Dictionary, read_only=False):
         columnspan=2, sticky='w',
         date=end_datetime
     )
-    # if len( THERE ARE ANY BOOKING ALREADY) > 1: # TODO
-    #     end_dateentry.config(state='disabled')
-    #     _message = Label(
-    #         PWparent, text="Not editable if tool was once already booked")
-    #     _message.grid(row=7, column=3, sticky='w')
+    # Get Tool ID number
+    tool_ID = Item_Dictionary.get("Unique_Item_Number")
+    if len(self.order_instance.fetch_orders_from_tool_id(tool_ID)) > 1:  # TODO
+        end_dateentry.config(state='disabled')
+        _message = Label(
+            PWparent, text="Not editable if tool was once already booked")
+        _message.grid(row=7, column=3, sticky='w')
     # View bookings
     _viewbookingsB = Button(
         PWparent,
@@ -196,8 +198,6 @@ def owner_edit_view_individual_tool_UI(self, Item_Dictionary, read_only=False):
         Item_Dictionary.get('Tool_Photos', ''))
     images_widget = GetImagesWidget(
         PWparent, empty_message='Add Photo', max_items=3)
-    # Get Tool ID number
-    tool_ID = Item_Dictionary.get("Unique_Item_Number")
     # Read-only Mode - Disable input on EVERYTHING
     if read_only == True:
         for entry in entries_list:

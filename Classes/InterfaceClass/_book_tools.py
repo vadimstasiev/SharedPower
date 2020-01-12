@@ -240,14 +240,10 @@ def user_view_tool_UI(self, Item_Dictionary, Owner_Dictionary):
     images_path_list = self.unpack_db_images_path(
         Item_Dictionary.get('Tool_Photos', ''))
     images_widget = DisplayImagesWidget(
-        PWparent, empty_message='Add Photo', max_items=3)
+        PWparent, empty_message='No Photo', max_items=3)
     # Get Tool ID number
     images_widget.grid(row=5, column=1, columnspan=2, sticky='w')
     images_widget.automatic__file_input(images_path_list)
     # Place Parent
     PWparent.grid(ipadx=50, ipady=30, padx=5, pady=5)
     self.root.mainloop()
-
-
-def user_book_tool_UI(self, ToolDictionary):
-    pass

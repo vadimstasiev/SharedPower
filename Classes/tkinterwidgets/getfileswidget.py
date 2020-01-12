@@ -60,7 +60,7 @@ class GetFilesWidget(Frame):
         self.refresh__ADD_button()
 
     def automatic__file_input(self, files):
-        for i in range(0, len(files)-2):
+        for i in range(0, len(files)-1):
             self.place__fileFrame()
         fileFrameANDpathbuttonList = zip(
             self.fileFrameList, self.filePathButtonList, files)
