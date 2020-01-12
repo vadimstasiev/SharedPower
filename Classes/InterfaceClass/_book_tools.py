@@ -1,3 +1,5 @@
+import uuid
+import datetime
 from tkinter import Label, LabelFrame, Button, Text, StringVar, OptionMenu
 try:  # Otherwise pylint complains
     from Classes.tkinterwidgets.scrollablecontainer import ScrollableContainer
@@ -198,6 +200,21 @@ def user_view_tool_UI(self, Item_Dictionary, Owner_Dictionary):
         *choices
     )
 
+    # Submit button
+    BookB = Button(
+        PWparent,
+        text='Book Tool',
+        command=lambda: self.process_book_tool(
+            PWparent,
+            Item_Dictionary,
+            type_of_booking=type_of_booking_StrVar.get(),
+            start_date=start_date_StrVar.get(),
+            end_date=end_date_StrVar.get(),
+            order_hours=hours_StrVar.get(),
+            tool_ID=Item_Dictionary.get('Unique_Item_Number')
+        )
+    )
+
     def show_hide_date_input(ignoreevent):
         if(type_of_booking_StrVar.get() == 'Full Day'):
             start_date_l.grid(row=8, column=0, sticky='w')
@@ -217,9 +234,10 @@ def user_view_tool_UI(self, Item_Dictionary, Owner_Dictionary):
             dateentry1.grid(row=8, column=1, columnspan=2, sticky='w')
             times_select.grid(row=10, column=1, columnspan=2,
                               sticky='w', pady=5)
+        BookB.grid(row=11, column=1, columnspan=2, sticky='w', pady=5)
 
-    # Booking type Label
-    Label(PWparent, text="Booking type:").grid(
+    # Booking  Label
+    Label(PWparent, text="Book Now:").grid(
         row=7, column=0, sticky='w', pady=5)
     # Type of booking Half Day or Full Day select
     choices = {'Half Day', 'Full Day'}
@@ -233,9 +251,7 @@ def user_view_tool_UI(self, Item_Dictionary, Owner_Dictionary):
         *choices
     )
     dropdown_select.grid(row=7, column=1, columnspan=2, sticky='w', pady=5)
-    # Submit button
-    BookB = Button(PWparent, text='Book Tool').grid(
-        row=11, column=1, columnspan=2, sticky='w', pady=5)
+
     # Custom GetImagesWidget
     images_path_list = self.unpack_db_images_path(
         Item_Dictionary.get('Tool_Photos', ''))
@@ -247,3 +263,74 @@ def user_view_tool_UI(self, Item_Dictionary, Owner_Dictionary):
     # Place Parent
     PWparent.grid(ipadx=50, ipady=30, padx=5, pady=5)
     self.root.mainloop()
+
+
+def process_book_tool(self, parent, Tool_Dictionary, **kwargs):
+    self.clear_errors()
+    if self.validate_booking(**kwargs) == False:
+        self.buffered_errors.append('Booking conflicts with existing order')
+    elif kwargs.get('order_hours') == 'Please Select' and kwargs.get('type_of_booking') == 'Half Day':
+        self.buffered_errors.append('Please select the half day hours')
+    else:
+        self.order_instance.record_order(
+            Unique_Order_ID=str(int(uuid.uuid1())),
+            Unique_Item_Number=Tool_Dictionary.get('Unique_Item_Number'),
+            Unique_User_ID=Tool_Dictionary.get('Unique_User_ID'),
+            Order_Date=self.datetime_to_string(datetime.datetime.now()),
+            Pick_Up_Fee=Tool_Dictionary.get('Pick_Up_Fee'),
+            Drop_Off_Fee=Tool_Dictionary.get('Drop_Off_Fee'),
+            Order_Type=kwargs.get('type_of_booking'),
+            Order_Hours=kwargs.get('order_hours'),
+            Booking_Start_Day=kwargs.get('start_date'),
+            Booking_End_Day=kwargs.get('end_date')
+        )
+    self.generate_output_errors_UI(parent, starting_index=30)
+
+
+def validate_booking(self, **kwargs):
+    booking_valid = True
+    tool_ID = kwargs.get('tool_ID')
+    OrdersList = self.order_instance.fetch_orders_from_tool_id(tool_ID)
+    start_datetime = self.string_to_datetime(kwargs.get('start_date'))
+    end_datetime = self.string_to_datetime(kwargs.get('end_date'))
+    booking_type = kwargs.get('type_of_booking')
+    booking_hours = kwargs.get('order_hours')
+    for order in OrdersList:
+        # get values
+        OrderDictionary = dict(
+            zip(self.order_instance.orders_table_Index, order)
+        )
+        order_type = OrderDictionary.get('Order_Type')
+        order_start_datetime = self.string_to_datetime(
+            OrderDictionary.get('Booking_Start_Day')
+        )
+        order_hours = OrderDictionary.get('Order_Hours')
+        order_end_datetime = None
+        try:
+            order_end_datetime = self.string_to_datetime(
+                OrderDictionary.get('Booking_End_Day')
+            )
+        except:
+            pass
+        # check validity
+        if order_type == 'Full Day':
+            if booking_type == 'Full Day':
+                if order_start_datetime <= start_datetime <= order_end_datetime:
+                    booking_valid = False
+                elif order_start_datetime <= end_datetime <= order_end_datetime:
+                    booking_valid = False
+            elif booking_type == 'Half Day':
+                if order_start_datetime <= start_datetime <= order_end_datetime:
+                    booking_valid = False
+        elif order_type == 'Half Day':
+            if booking_type == 'Full Day':
+                if order_start_datetime == start_datetime:
+                    booking_valid = False
+                elif order_start_datetime == end_datetime:
+                    booking_valid = False
+            elif booking_type == 'Half Day':
+                if order_start_datetime == start_datetime:
+                    if order_hours == booking_hours:
+                        booking_valid = False
+
+    return booking_valid

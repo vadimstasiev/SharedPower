@@ -36,7 +36,7 @@ class OrderClass:
         self.DB_Link.select_table(self.orders_table)
         order_details = []
         for i in self.orders_table_Index:
-            order_details.append(kwargv.pop(i))
+            order_details.append(kwargv.pop(i, ''))
         if len(kwargv) > 1:
             self.tool_class_error_buffer.append(
                 "ERROR - Unknown kwards were passed into the record order method")

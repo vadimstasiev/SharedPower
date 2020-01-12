@@ -47,7 +47,7 @@ class UI_Interface:
     from ._user_menu import menu_user_options_UI
     # , view_individual_tool_UI
     from ._view_edit_inventory import view_listed_inventory_UI, display_list_tool_UI, owner_edit_view_individual_tool_UI, delete_tool
-    from ._book_tools import user_view_all_tools_UI, user_display_list_tool_UI, display_horizontal_labels, user_view_tool_UI
+    from ._book_tools import user_view_all_tools_UI, user_display_list_tool_UI, display_horizontal_labels, user_view_tool_UI, process_book_tool, validate_booking
     from ._image_related_functions import generate_PhotoImage_list, unpack_db_images_path, delete_images, get_image_paths_str_DB_ready
     from ._date_related_functions import view_bookings_Calendar_UI
     from ._type_conversion import get_savable_int_price, get_displayable_price, datetime_to_string, string_to_datetime

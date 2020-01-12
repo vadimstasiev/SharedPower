@@ -158,7 +158,7 @@ def owner_edit_view_individual_tool_UI(self, Item_Dictionary, read_only=False):
     if start_datetime < datetime.datetime.now():
         start_dateentry.config(state='disabled')
         _message = Label(
-            PWparent, text="Not editable if tool was once already available")
+            PWparent, text="Not editable if tool was already available")
         _message.grid(row=6, column=3, sticky='w')
     # Date entry end date
     end_datetime = self.string_to_datetime(
@@ -172,10 +172,10 @@ def owner_edit_view_individual_tool_UI(self, Item_Dictionary, read_only=False):
     )
     # Get Tool ID number
     tool_ID = Item_Dictionary.get("Unique_Item_Number")
-    if len(self.order_instance.fetch_orders_from_tool_id(tool_ID)) > 1:  # TODO
+    if len(self.order_instance.fetch_orders_from_tool_id(tool_ID)) > 0:  # TODO
         end_dateentry.config(state='disabled')
         _message = Label(
-            PWparent, text="Not editable if tool was once already booked")
+            PWparent, text="Not editable if tool was already booked")
         _message.grid(row=7, column=3, sticky='w')
     # View bookings
     _viewbookingsB = Button(
