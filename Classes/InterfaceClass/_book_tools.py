@@ -1,6 +1,6 @@
 import uuid
 import datetime
-from tkinter import Label, LabelFrame, Button, Text, StringVar, OptionMenu
+from tkinter import Label, LabelFrame, Button, Text, StringVar, IntVar, OptionMenu, Radiobutton, messagebox
 try:  # Otherwise pylint complains
     from Classes.tkinterwidgets.scrollablecontainer import ScrollableContainer
     from Classes.tkinterwidgets.getfileswidget import GetImagesWidget, DisplayImagesWidget
@@ -200,6 +200,13 @@ def user_view_tool_UI(self, Item_Dictionary, Owner_Dictionary):
         *choices
     )
 
+    # Fee Buttons
+    feesIntVar = IntVar()
+    type_of_deliveryBtn1 = Radiobutton(
+        PWparent, text="Delivery to home address (Adds Fees)", padx=20, variable=feesIntVar, value=0)
+    type_of_deliveryBtn2 = Radiobutton(
+        PWparent, text="Collection by User", padx=20, variable=feesIntVar, value=1)
+
     # Submit button
     BookB = Button(
         PWparent,
@@ -211,6 +218,7 @@ def user_view_tool_UI(self, Item_Dictionary, Owner_Dictionary):
             start_date=start_date_StrVar.get(),
             end_date=end_date_StrVar.get(),
             order_hours=hours_StrVar.get(),
+            fees_int=feesIntVar.get(),
             tool_ID=Item_Dictionary.get('Unique_Item_Number')
         )
     )
@@ -234,7 +242,11 @@ def user_view_tool_UI(self, Item_Dictionary, Owner_Dictionary):
             dateentry1.grid(row=8, column=1, columnspan=2, sticky='w')
             times_select.grid(row=10, column=1, columnspan=2,
                               sticky='w', pady=5)
-        BookB.grid(row=11, column=1, columnspan=2, sticky='w', pady=5)
+        type_of_deliveryBtn1.grid(
+            row=11, column=1, columnspan=2, sticky='w', pady=5)
+        type_of_deliveryBtn2.grid(
+            row=12, column=1, columnspan=2, sticky='w', pady=5)
+        BookB.grid(row=13, column=1, columnspan=2, sticky='w', pady=5)
 
     # Booking  Label
     Label(PWparent, text="Book Now:").grid(
@@ -272,18 +284,22 @@ def process_book_tool(self, parent, Tool_Dictionary, **kwargs):
     elif kwargs.get('order_hours') == 'Please Select' and kwargs.get('type_of_booking') == 'Half Day':
         self.buffered_errors.append('Please select the half day hours')
     else:
+        if kwargs.get('fees_int', '') == 1:  # TODO
+            pick_up_fee = '0'
+        else:
+            pick_up_fee = Tool_Dictionary.get('Pick_Up_Fee')
         self.order_instance.record_order(
             Unique_Order_ID=str(int(uuid.uuid1())),
             Unique_Item_Number=Tool_Dictionary.get('Unique_Item_Number'),
             Unique_User_ID=Tool_Dictionary.get('Unique_User_ID'),
             Order_Date=self.datetime_to_string(datetime.datetime.now()),
-            Pick_Up_Fee=Tool_Dictionary.get('Pick_Up_Fee'),
-            Drop_Off_Fee=Tool_Dictionary.get('Drop_Off_Fee'),
+            Pick_Up_Fee=pick_up_fee,
             Order_Type=kwargs.get('type_of_booking'),
             Order_Hours=kwargs.get('order_hours'),
             Booking_Start_Day=kwargs.get('start_date'),
             Booking_End_Day=kwargs.get('end_date')
         )
+        messagebox.showinfo(title='Success', message='Success! Tool Booked')
     self.generate_output_errors_UI(parent, starting_index=30)
 
 
