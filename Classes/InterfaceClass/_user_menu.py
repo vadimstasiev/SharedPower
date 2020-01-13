@@ -14,7 +14,8 @@ def menu_user_options_UI(self):
     if (User_Type == "Tool_User"):
         button_text_and_functions = [
             ("Search for tools", None),
-            ("View current orders", None),
+            ("View all Inventory", self.user_view_all_tools_UI),
+            ("View current orders", self.view_listed_orders_UI),
             ("View next Invoice", None),
             ("Log Out", self.log_in_UI),
         ]
@@ -24,7 +25,7 @@ def menu_user_options_UI(self):
             ("View Listed Inventory", self.view_listed_inventory_UI),
             ("Search for tools", None),
             ("View all Inventory", self.user_view_all_tools_UI),
-            ("View current orders", None),
+            ("View current orders", self.view_listed_orders_UI),
             ("View Purchase History", None),
             ("View next Invoice", None),
             ("Log Out", self.log_in_UI),

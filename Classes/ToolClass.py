@@ -64,6 +64,19 @@ class ToolClass:
         indentifying_expr = f"Unique_Item_Number = '{tool_ID}'"
         self.DB_Link.delete_line(indentifying_expr)
 
+    def fetch_tool_by_tool_id(self, Unique_Item_Number):
+        self.DB_Link.select_table(self.inventory_table)
+        __list_results = self.DB_Link.fetch_lines_from_db(
+            f"Unique_Item_Number = '{Unique_Item_Number}'")
+        # there should only be 1 so: __list_results[0]
+        Tool_Dictionary = {}
+        try:
+            Tool_Dictionary = dict(
+                zip(self.Inventory_Table_Index, __list_results[0]))
+        except:
+            pass
+        return Tool_Dictionary
+
     def fetch_user_listed_inventory(self, user_unique_id):
         self.DB_Link.select_table(self.inventory_table)
         __list_results = self.DB_Link.fetch_lines_from_db(

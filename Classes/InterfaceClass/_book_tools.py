@@ -329,7 +329,7 @@ def validate_booking(self, User_Dictionary, **kwargs):
         )
         order_hours = OrderDictionary.get('Order_Hours')
         order_end_datetime = None
-        try:
+        try:  # Field might be empty
             order_end_datetime = self.string_to_datetime(
                 OrderDictionary.get('Booking_End_Day')
             )
@@ -361,6 +361,11 @@ def validate_booking(self, User_Dictionary, **kwargs):
                     if start_datetime > end_datetime:
                         self.buffered_errors.append(
                             'Ending date cannot be before starting date')
+            order_end_datetime = order_start_datetime
+        if OrderDictionary.get('Unique_User_ID') == User_Dictionary.get('Unique_User_ID'):
+            if datetime.datetime.now() < order_end_datetime:
+                self.buffered_errors.append(
+                    'You cannot book this tool again before the end of the last booking ' + self.datetime_to_string(order_end_datetime))
 
     if date_conflict == True:
         self.buffered_errors.append(
