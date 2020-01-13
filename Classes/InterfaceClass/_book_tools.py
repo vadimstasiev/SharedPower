@@ -219,7 +219,8 @@ def user_view_tool_UI(self, Item_Dictionary, Owner_Dictionary):
             end_date=end_date_StrVar.get(),
             order_hours=hours_StrVar.get(),
             fees_int=feesIntVar.get(),
-            tool_ID=Item_Dictionary.get('Unique_Item_Number')
+            tool_ID=Item_Dictionary.get('Unique_Item_Number'),
+            owner_ID=Item_Dictionary.get('Unique_User_ID')
         )
     )
 
@@ -279,32 +280,38 @@ def user_view_tool_UI(self, Item_Dictionary, Owner_Dictionary):
 
 def process_book_tool(self, parent, Tool_Dictionary, **kwargs):
     self.clear_errors()
-    if self.validate_booking(**kwargs) == False:
-        self.buffered_errors.append('Booking conflicts with existing order')
-    elif kwargs.get('order_hours') == 'Please Select' and kwargs.get('type_of_booking') == 'Half Day':
-        self.buffered_errors.append('Please select the half day hours')
-    else:
-        if kwargs.get('fees_int', '') == 1:  # TODO
+    User_Dictionary = self.user_instance.User_Dictionary
+    self.validate_booking(User_Dictionary, **kwargs)
+    if len(self.buffered_errors) == 0:
+        if kwargs.get('fees_int', '') == 1:
             pick_up_fee = '0'
         else:
             pick_up_fee = Tool_Dictionary.get('Pick_Up_Fee')
-        self.order_instance.record_order(
-            Unique_Order_ID=str(int(uuid.uuid1())),
-            Unique_Item_Number=Tool_Dictionary.get('Unique_Item_Number'),
-            Unique_User_ID=Tool_Dictionary.get('Unique_User_ID'),
-            Order_Date=self.datetime_to_string(datetime.datetime.now()),
-            Pick_Up_Fee=pick_up_fee,
-            Order_Type=kwargs.get('type_of_booking'),
-            Order_Hours=kwargs.get('order_hours'),
-            Booking_Start_Day=kwargs.get('start_date'),
-            Booking_End_Day=kwargs.get('end_date')
+
+        answer = messagebox.askyesnocancel(
+            "Book Tool",
+            "Are you sure that you want to make this booking?",
+            icon='warning'
         )
-        messagebox.showinfo(title='Success', message='Success! Tool Booked')
+        if answer == 1:
+            self.order_instance.record_order(
+                Unique_Order_ID=str(int(uuid.uuid1())),
+                Unique_Item_Number=Tool_Dictionary.get('Unique_Item_Number'),
+                Unique_User_ID=User_Dictionary.get('Unique_User_ID'),
+                Order_Date=self.datetime_to_string(datetime.datetime.now()),
+                Pick_Up_Fee=pick_up_fee,
+                Order_Type=kwargs.get('type_of_booking'),
+                Order_Hours=kwargs.get('order_hours'),
+                Booking_Start_Day=kwargs.get('start_date'),
+                Booking_End_Day=kwargs.get('end_date')
+            )
+            messagebox.showinfo(
+                title='Success', message='Success! Tool Booked')
     self.generate_output_errors_UI(parent, starting_index=30)
 
 
-def validate_booking(self, **kwargs):
-    booking_valid = True
+def validate_booking(self, User_Dictionary, **kwargs):
+    date_conflict = False
     tool_ID = kwargs.get('tool_ID')
     OrdersList = self.order_instance.fetch_orders_from_tool_id(tool_ID)
     start_datetime = self.string_to_datetime(kwargs.get('start_date'))
@@ -332,21 +339,39 @@ def validate_booking(self, **kwargs):
         if order_type == 'Full Day':
             if booking_type == 'Full Day':
                 if order_start_datetime <= start_datetime <= order_end_datetime:
-                    booking_valid = False
+                    date_conflict = True
                 elif order_start_datetime <= end_datetime <= order_end_datetime:
-                    booking_valid = False
+                    date_conflict = True
             elif booking_type == 'Half Day':
                 if order_start_datetime <= start_datetime <= order_end_datetime:
-                    booking_valid = False
+                    date_conflict = True
+                if start_datetime > end_datetime:
+                    self.buffered_errors.append(
+                        'Ending date cannot be before starting date')
         elif order_type == 'Half Day':
             if booking_type == 'Full Day':
                 if order_start_datetime == start_datetime:
-                    booking_valid = False
+                    date_conflict = True
                 elif order_start_datetime == end_datetime:
-                    booking_valid = False
+                    date_conflict = True
             elif booking_type == 'Half Day':
                 if order_start_datetime == start_datetime:
                     if order_hours == booking_hours:
-                        booking_valid = False
+                        date_conflict = True
+                    if start_datetime > end_datetime:
+                        self.buffered_errors.append(
+                            'Ending date cannot be before starting date')
 
-    return booking_valid
+    if date_conflict == True:
+        self.buffered_errors.append(
+            'Booking conflicts with existing order')
+    elif (end_datetime-start_datetime).days >= 3:
+        self.buffered_errors.append(
+            'You cannot book the tool for longer than 3 days')
+    elif kwargs.get('order_hours') == 'Please Select' and kwargs.get('type_of_booking') == 'Half Day':
+        self.buffered_errors.append('Please select the half day hours')
+    elif User_Dictionary.get('Unique_User_ID') == kwargs.get('owner_ID'):
+        self.buffered_errors.append('You cannot book your own tool')
+    elif (start_datetime-datetime.datetime.now()).days/7 >= 6:
+        self.buffered_errors.append(
+            'You cannot book earlier than 6 weeks in advance')
