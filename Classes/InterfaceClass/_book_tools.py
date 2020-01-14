@@ -301,7 +301,8 @@ def process_book_tool(self, parent, Tool_Dictionary, **kwargs):
                 Order_Date=self.datetime_to_string(datetime.datetime.now()),
                 Pick_Up_Fee=pick_up_fee,
                 Order_Type=kwargs.get('type_of_booking'),
-                Order_Hours='' if kwargs.get('order_hours')=='Please Select' else kwargs.get('order_hours'),
+                Order_Hours='' if kwargs.get(
+                    'order_hours') == 'Please Select' else kwargs.get('order_hours'),
                 Booking_Start_Day=kwargs.get('start_date'),
                 Booking_End_Day=kwargs.get('end_date'),
                 Order_State='Not_Complete'
@@ -338,8 +339,7 @@ def validate_booking(self, User_Dictionary, **kwargs):
             )
         except:
             pass
-        if OrderDictionary.get('Order_State') == 'Complete':
-            # check validity
+        if OrderDictionary.get('Unique_User_ID') != User_Dictionary.get('Unique_User_ID'):
             if order_type == 'Full Day':
                 if booking_type == 'Full Day':
                     if order_start_datetime <= start_datetime <= order_end_datetime:
@@ -365,19 +365,18 @@ def validate_booking(self, User_Dictionary, **kwargs):
                         if start_datetime > end_datetime:
                             self.buffered_errors.append(
                                 'Ending date cannot be before starting date')
-                order_end_datetime = order_start_datetime
-        if OrderDictionary.get('Order_State') == 'Not_Complete':
+
+        elif OrderDictionary.get('Order_State') == 'Not_Complete':
             self.buffered_errors.append(
-                'You cannot book this tool again before the end of the last booking ' + self.datetime_to_string(order_end_datetime))
-    if OrderDictionary.get('Order_State') != 'Complete':
-        if date_conflict == True:
-            self.buffered_errors.append(
-                'Booking conflicts with existing order')
-        elif (end_datetime-start_datetime).days >= 3:
-            self.buffered_errors.append(
-                'You cannot book the tool for longer than 3 days')
-        elif User_Dictionary.get('Unique_User_ID') == kwargs.get('owner_ID'):
-            self.buffered_errors.append('You cannot book your own tool')
-        elif (start_datetime-datetime.datetime.now()).days/7 >= 6:
-            self.buffered_errors.append(
-                'You cannot book earlier than 6 weeks in advance')
+                'You cannot book the same tool before you return it')
+    if date_conflict == True:
+        self.buffered_errors.append(
+            'Booking conflicts with existing order')
+    elif (end_datetime-start_datetime).days >= 3:
+        self.buffered_errors.append(
+            'You cannot book the tool for longer than 3 days')
+    elif User_Dictionary.get('Unique_User_ID') == kwargs.get('owner_ID'):
+        self.buffered_errors.append('You cannot book your own tool')
+    elif (start_datetime-datetime.datetime.now()).days/7 >= 6:
+        self.buffered_errors.append(
+            'You cannot book earlier than 6 weeks in advance')

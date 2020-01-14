@@ -8,6 +8,7 @@ try:  # Otherwise pylint complains
     from Classes.UserClass import UserClass
     from Classes.ToolClass import ToolClass
     from Classes.OrderClass import OrderClass
+    from Classes.InvoiceClass import InvoiceClass
 except:
     pass
 
@@ -19,6 +20,7 @@ class UI_Interface:
         self.user_instance = UserClass(self.db_link)
         self.tool_instance = ToolClass(self.db_link)
         self.order_instance = OrderClass(self.db_link)
+        self.invoice_instance = InvoiceClass(self.db_link)
         self.buffered_errors = []
         self.outputed_errors_list = []
         self.image_references = []
@@ -46,7 +48,8 @@ class UI_Interface:
     )
     from ._user_menu import menu_user_options_UI
     from ._view_edit_inventory import view_listed_inventory_UI, display_list_tool_UI, owner_edit_view_individual_tool_UI, delete_tool
-    from ._view_edit_orders import view_listed_orders_UI, display_order_UI, return_or_arrange_collection, mark_as_received, mark_as_returned_to_owner, delete_order
+    from ._view_edit_orders import view_listed_orders_UI, display_order_UI, return_or_arrange_collection, mark_as_received, mark_as_returned_to_owner, cancel_order
+    from ._view_next_invoice import view_month_invoice_UI
     from ._book_tools import user_view_all_tools_UI, user_display_list_tool_UI, display_horizontal_labels, user_view_tool_UI, process_book_tool, validate_booking
     from ._image_related_functions import generate_PhotoImage_list, unpack_db_images_path, delete_images, get_image_paths_str_DB_ready
     from ._date_related_functions import view_bookings_Calendar_UI

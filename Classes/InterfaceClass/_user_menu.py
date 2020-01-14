@@ -13,21 +13,21 @@ def menu_user_options_UI(self):
     button_text_and_functions = []
     if (User_Type == "Tool_User"):
         button_text_and_functions = [
-            ("Search for tools", None),
-            ("Browse Inventory", self.user_view_all_tools_UI),
-            ("View current orders", self.view_listed_orders_UI),
-            ("View next Invoice", None),
+            # ("Search for tools", None),
+            ("Browse Global Inventory", self.user_view_all_tools_UI),
+            ("View Current Orders", self.view_listed_orders_UI),
+            ("View Next Invoice", self.view_month_invoice_UI),
             ("Log Out", self.log_in_UI),
         ]
     elif (User_Type == "Tool_Owner"):
         button_text_and_functions = [
             ("Register tool", self.register_tool_UI),
             ("View Listed Inventory", self.view_listed_inventory_UI),
-            ("Search for tools", None),
-            ("Browse Inventory", self.user_view_all_tools_UI),
-            ("View current orders", self.view_listed_orders_UI),
-            ("View Purchase History", None),
-            ("View next Invoice", None),
+            # ("Search for tools", None),
+            ("Browse Global Inventory", self.user_view_all_tools_UI),
+            ("View Current Orders", self.view_listed_orders_UI),
+            # ("View Purchase History", None),
+            ("View Next Invoice", self.view_month_invoice_UI),
             ("Log Out", self.log_in_UI),
         ]
     else:

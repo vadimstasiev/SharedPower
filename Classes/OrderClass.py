@@ -23,6 +23,8 @@ class OrderClass:
             "Order_Hours", str,
             "Booking_Start_Day", str,
             "Booking_End_Day", str,
+            "Days_Late", str,
+            "Invoiced", str,
             "Customer_Feedback", str,
             "Customer_Condition_Photos", str
         )
@@ -60,7 +62,7 @@ class OrderClass:
 
     def cancel_order(self, order_ID="0"):
         self.DB_Link.select_table(self.orders_table)
-        indentifying_expr = f"Unique_Item_Number = '{order_ID}'"
+        indentifying_expr = f"Unique_Order_ID = '{order_ID}'"
         self.DB_Link.delete_line(indentifying_expr)
 
     def fetch_orders_from_user_id(self, User_ID):
