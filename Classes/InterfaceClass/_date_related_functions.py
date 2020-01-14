@@ -37,7 +37,7 @@ def view_bookings_Calendar_UI(self, ToolDictionary):
     cal.tag_config('half_day_evening', background='green', foreground='black')
     cal.pack(fill="both", expand=True)
     Label(top, text='Half Day - 6:00-12:00',
-          bg='yellow').pack(fill="both", expand=True)
+          bg='yellow').pack(fill="both")
     Label(top, text='Half Day - 12:00-18:00',
-          bg='green').pack(fill="both", expand=True)
-    Label(top, text='Full Day', bg='red').pack(fill="both", expand=True)
+          bg='green').pack(fill="both")
+    Label(top, text='Full Day', bg='red').pack(fill="both")

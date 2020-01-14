@@ -303,7 +303,8 @@ def process_book_tool(self, parent, Tool_Dictionary, **kwargs):
                 Order_Type=kwargs.get('type_of_booking'),
                 Order_Hours=kwargs.get('order_hours'),
                 Booking_Start_Day=kwargs.get('start_date'),
-                Booking_End_Day=kwargs.get('end_date')
+                Booking_End_Day=kwargs.get('end_date'),
+                Order_State='Not_Complete'
             )
             messagebox.showinfo(
                 title='Success', message='Success! Tool Booked')
@@ -318,52 +319,53 @@ def validate_booking(self, User_Dictionary, **kwargs):
     end_datetime = self.string_to_datetime(kwargs.get('end_date'))
     booking_type = kwargs.get('type_of_booking')
     booking_hours = kwargs.get('order_hours')
-    for order in OrdersList:
-        # get values
-        OrderDictionary = dict(
-            zip(self.order_instance.orders_table_Index, order)
-        )
-        order_type = OrderDictionary.get('Order_Type')
-        order_start_datetime = self.string_to_datetime(
-            OrderDictionary.get('Booking_Start_Day')
-        )
-        order_hours = OrderDictionary.get('Order_Hours')
-        order_end_datetime = None
-        try:  # Field might be empty
-            order_end_datetime = self.string_to_datetime(
-                OrderDictionary.get('Booking_End_Day')
+    if kwargs.get('order_hours') == 'Please Select' and kwargs.get('type_of_booking') == 'Half Day':
+        self.buffered_errors.append('Please select the half day hours')
+        for order in OrdersList:
+            # get values
+            OrderDictionary = dict(
+                zip(self.order_instance.orders_table_Index, order)
             )
-        except:
-            pass
-        # check validity
-        if order_type == 'Full Day':
-            if booking_type == 'Full Day':
-                if order_start_datetime <= start_datetime <= order_end_datetime:
-                    date_conflict = True
-                elif order_start_datetime <= end_datetime <= order_end_datetime:
-                    date_conflict = True
-            elif booking_type == 'Half Day':
-                if order_start_datetime <= start_datetime <= order_end_datetime:
-                    date_conflict = True
-                if start_datetime > end_datetime:
-                    self.buffered_errors.append(
-                        'Ending date cannot be before starting date')
-        elif order_type == 'Half Day':
-            if booking_type == 'Full Day':
-                if order_start_datetime == start_datetime:
-                    date_conflict = True
-                elif order_start_datetime == end_datetime:
-                    date_conflict = True
-            elif booking_type == 'Half Day':
-                if order_start_datetime == start_datetime:
-                    if order_hours == booking_hours:
+            order_type = OrderDictionary.get('Order_Type')
+            order_start_datetime = self.string_to_datetime(
+                OrderDictionary.get('Booking_Start_Day')
+            )
+            order_hours = OrderDictionary.get('Order_Hours')
+            order_end_datetime = None
+            try:  # Field might be empty
+                order_end_datetime = self.string_to_datetime(
+                    OrderDictionary.get('Booking_End_Day')
+                )
+            except:
+                pass
+            # check validity
+            if order_type == 'Full Day':
+                if booking_type == 'Full Day':
+                    if order_start_datetime <= start_datetime <= order_end_datetime:
+                        date_conflict = True
+                    elif order_start_datetime <= end_datetime <= order_end_datetime:
+                        date_conflict = True
+                elif booking_type == 'Half Day':
+                    if order_start_datetime <= start_datetime <= order_end_datetime:
                         date_conflict = True
                     if start_datetime > end_datetime:
                         self.buffered_errors.append(
                             'Ending date cannot be before starting date')
-            order_end_datetime = order_start_datetime
-        if OrderDictionary.get('Unique_User_ID') == User_Dictionary.get('Unique_User_ID'):
-            if datetime.datetime.now() < order_end_datetime:
+            elif order_type == 'Half Day':
+                if booking_type == 'Full Day':
+                    if order_start_datetime == start_datetime:
+                        date_conflict = True
+                    elif order_start_datetime == end_datetime:
+                        date_conflict = True
+                elif booking_type == 'Half Day':
+                    if order_start_datetime == start_datetime:
+                        if order_hours == booking_hours:
+                            date_conflict = True
+                        if start_datetime > end_datetime:
+                            self.buffered_errors.append(
+                                'Ending date cannot be before starting date')
+                order_end_datetime = order_start_datetime
+            if OrderDictionary.get('Order_State') == 'Not_Complete':
                 self.buffered_errors.append(
                     'You cannot book this tool again before the end of the last booking ' + self.datetime_to_string(order_end_datetime))
 
@@ -373,8 +375,6 @@ def validate_booking(self, User_Dictionary, **kwargs):
     elif (end_datetime-start_datetime).days >= 3:
         self.buffered_errors.append(
             'You cannot book the tool for longer than 3 days')
-    elif kwargs.get('order_hours') == 'Please Select' and kwargs.get('type_of_booking') == 'Half Day':
-        self.buffered_errors.append('Please select the half day hours')
     elif User_Dictionary.get('Unique_User_ID') == kwargs.get('owner_ID'):
         self.buffered_errors.append('You cannot book your own tool')
     elif (start_datetime-datetime.datetime.now()).days/7 >= 6:

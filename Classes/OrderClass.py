@@ -15,6 +15,7 @@ class OrderClass:
             "Unique_Item_Number", str,
             "Unique_User_ID", str,
             "Unique_Order_ID", str,
+            "Order_State", str,
             "Order_Date", str,
             "Pick_Up_Fee", str,
             "Drop_Off_Fee", str,

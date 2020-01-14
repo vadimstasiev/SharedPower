@@ -1,5 +1,5 @@
 import datetime
-from tkinter import Label, LabelFrame, Frame, Entry, Text, Button, StringVar, OptionMenu, messagebox
+from tkinter import Label, LabelFrame, Frame, Entry, Text, Button, StringVar, OptionMenu, messagebox, Toplevel
 try:  # Otherwise pylint complains
     from Classes.tkinterwidgets.scrollablecontainer import ScrollableContainer
     from Classes.tkinterwidgets.getfileswidget import GetImagesWidget, DisplayImagesWidget
@@ -22,11 +22,19 @@ def view_listed_orders_UI(self):  # TODO display ordeers by tool ID - for owners
     User_ID = self.user_instance.get_user_unique_ID()
     orders_list = self.order_instance.fetch_orders_from_user_id(User_ID)
     # Loop through all results and display them
-    if len(orders_list) != 0:
-        __i = 0
-        for order in orders_list:
-            __i += 1
-            self.display_order_UI(sc.container, order)
+    __i = 0
+    display_list = []
+    for order in orders_list:
+        __i += 1
+        Order_Dictionary = dict(
+            zip(self.order_instance.orders_table_Index, order))
+        if Order_Dictionary.get('Order_State') == 'Complete':
+            display_list.append(order)
+    if len(display_list) != 0:
+        for _order in display_list:
+            Order_Dictionary = dict(
+                zip(self.order_instance.orders_table_Index, _order))
+            self.display_order_UI(sc.container, Order_Dictionary)
     else:
         Label(sc.container, text="You don't have any orders orders",
               font=("Helvetica", 20)).grid(padx=100, pady=300)
@@ -36,10 +44,8 @@ def view_listed_orders_UI(self):  # TODO display ordeers by tool ID - for owners
     self.root.mainloop()
 
 
-def display_order_UI(self, __parent, order, **kw):
+def display_order_UI(self, __parent, Order_Dictionary, **kw):
     # prepare the necessary dictionaries
-    Order_Dictionary = dict(
-        zip(self.order_instance.orders_table_Index, order))
     Tool_Dictionary = self.tool_instance.fetch_tool_by_tool_id(
         Order_Dictionary.get('Unique_Item_Number'))
     Owner_Dictionary = self.user_instance.get_User_Dictionary_by_ID(
@@ -127,26 +133,46 @@ def display_order_UI(self, __parent, order, **kw):
 
 def return_or_arrange_collection(self, Order_Dictionary, Tool_Dictionary):
     top = Toplevel(self.root)
-    button1 = Button(
-        __widget,
+    Button(
+        top,
+        text="Return to Owner",
+        command=lambda: self.mark_as_returned_to_owner(
+            Order_Dictionary, 'owner'),
+    ).pack(fill="both", expand=True)
+    Button(
+        top,
         text="Return",
+        command=lambda: self.mark_as_returned_to_owner(
+            Order_Dictionary, 'depot'),
+    ).pack(fill="both", expand=True)
+    Button(
+        top,
+        text="Arrange Collection - Deliver to Depot",
         command=lambda: self.mark_as_received(Order_Dictionary),
-    )
-    button2 = Button(
-        __widget,
-        text="Arrange Collection",
-        command=lambda: self.mark_as_received(Order_Dictionary),
-    )
+    ).pack(fill="both", expand=True)
 
 
-def mark_as_returned(self, Order_Dictionary):
-    self.tool_instance.update_tool(
-        Unique_Item_Number=Order_Dictionary.get('Unique_Item_Number'),
-        Item_Process_State='with user'
-    )
+def mark_as_returned_to_owner(self, Order_Dictionary, returnto):
+    if returnto == 'owner':
+        self.tool_instance.update_tool(
+            Unique_Item_Number=Order_Dictionary.get('Unique_Item_Number'),
+            Item_Process_State='with owner'
+        )
+    elif returnto == 'depot':
+        self.tool_instance.update_tool(
+            Unique_Item_Number=Order_Dictionary.get('Unique_Item_Number'),
+            Item_Process_State='with depot'
+        )
     self.view_listed_orders_UI()
 
 # mark item as locked if it was already delivered
+
+
+def mark_as_returned_to_depot(self,  Order_Dictionary):
+    self.tool_instance.update_tool(
+        Unique_Item_Number=Order_Dictionary.get('Unique_Item_Number'),
+        Item_Process_State='with depot'
+    )
 
 # Mark as received Here
 
@@ -154,6 +180,7 @@ def mark_as_returned(self, Order_Dictionary):
 def mark_as_received(self, Order_Dictionary):
     self.tool_instance.update_tool(
         Unique_Item_Number=Order_Dictionary.get('Unique_Item_Number'),
+        Order_State='Complete',
         Item_Process_State='with user'
     )
     self.view_listed_orders_UI()
