@@ -36,7 +36,7 @@ def view_listed_orders_UI(self):  # TODO display ordeers by tool ID - for owners
                 zip(self.order_instance.orders_table_Index, _order))
             self.display_order_UI(sc.container, Order_Dictionary)
     else:
-        Label(sc.container, text="You don't have any orders orders",
+        Label(sc.container, text="You don't have any orders",
               font=("Helvetica", 20)).grid(padx=100, pady=300)
     sc.grid(row=0, column=0, sticky='nsew')
     # Show any errors that might have come up
@@ -109,7 +109,6 @@ def display_order_UI(self, __parent, Order_Dictionary, **kw):
         viewB = Button(
             PWparent,
             text="Return or Arrange Collection",
-            # command=lambda: self.owner_edit_view_individual_order_UI(Order_Dictionary, Tool_Dictionary))
             command=lambda: self.return_or_arrange_collection(Order_Dictionary, Tool_Dictionary))
     else:
         viewB = Button(
@@ -123,7 +122,7 @@ def display_order_UI(self, __parent, Order_Dictionary, **kw):
     editB = Button(
         PWparent,
         text="Cancel Order",
-        command=lambda: self.owner_edit_view_individual_order_UI(Order_Dictionary, Tool_Dictionary))
+        command=None)
     editB.grid(column=0, row=2, rowspan=2, pady=10, padx=25,
                ipadx=40, ipady=2, sticky='we')
     PWparent.grid(ipadx=50, ipady=30, padx=5, pady=5, sticky='we')
@@ -133,22 +132,44 @@ def display_order_UI(self, __parent, Order_Dictionary, **kw):
 
 def return_or_arrange_collection(self, Order_Dictionary, Tool_Dictionary):
     top = Toplevel(self.root)
+    top.attributes('-topmost', 'true')
+
+    # StrVars
+    # drop_off_fee_StrVar = StringVar()
+
+    customer_feedback_label = Label(
+        top, text="Please leave your Feedback:").pack(fill="both", expand=True)
+    customer_feedback_box = Text(top)
+    customer_feedback_box.pack(fill="both", expand=True)
+    # Custom GetImagesWidget
+    condition_photos_label = Label(
+        top, text="Tool Condition Photos:").pack(fill="both", expand=True)
+    images_widget = GetImagesWidget(
+        top, empty_message='Add Photo', max_items=3)
+    images_widget.pack(fill="both", expand=True)
+
+    def update_tool_information(_method, _returnto):
+        self.order_instance.update_order(
+            Unique_Order_ID=Order_Dictionary.get("Unique_Order_ID"),
+            Customer_Feedback=customer_feedback_box.get(
+                "1.0", 'end-1c').replace("'", "''"),
+            Customer_Condition_Photos=self.get_image_paths_str_DB_ready(
+                images_widget)
+        )
+        _method(Order_Dictionary, _returnto)
+
     Button(
         top,
         text="Return to Owner",
-        command=lambda: self.mark_as_returned_to_owner(
-            Order_Dictionary, 'owner'),
+        command=lambda: update_tool_information(
+            self.mark_as_returned_to_owner, 'owner')
+
     ).pack(fill="both", expand=True)
     Button(
         top,
         text="Return",
-        command=lambda: self.mark_as_returned_to_owner(
-            Order_Dictionary, 'depot'),
-    ).pack(fill="both", expand=True)
-    Button(
-        top,
-        text="Arrange Collection - Deliver to Depot",
-        command=lambda: self.mark_as_received(Order_Dictionary),
+        command=lambda: update_tool_information(
+            self.mark_as_returned_to_owner, 'depot'),
     ).pack(fill="both", expand=True)
 
 
@@ -158,21 +179,21 @@ def mark_as_returned_to_owner(self, Order_Dictionary, returnto):
             Unique_Item_Number=Order_Dictionary.get('Unique_Item_Number'),
             Item_Process_State='with owner'
         )
+        self.order_instance.update_order(
+            Unique_Order_ID=Order_Dictionary.get('Unique_Order_ID'),
+            Order_State='Complete',
+        )
     elif returnto == 'depot':
         self.tool_instance.update_tool(
             Unique_Item_Number=Order_Dictionary.get('Unique_Item_Number'),
             Item_Process_State='with depot'
         )
+        self.order_instance.update_order(
+            Unique_Order_ID=Order_Dictionary.get('Unique_Order_ID'),
+            Order_State='Complete',
+        )
     self.view_listed_orders_UI()
 
-# mark item as locked if it was already delivered
-
-
-def mark_as_returned_to_depot(self,  Order_Dictionary):
-    self.tool_instance.update_tool(
-        Unique_Item_Number=Order_Dictionary.get('Unique_Item_Number'),
-        Item_Process_State='with depot'
-    )
 
 # Mark as received Here
 
@@ -180,87 +201,13 @@ def mark_as_returned_to_depot(self,  Order_Dictionary):
 def mark_as_received(self, Order_Dictionary):
     self.tool_instance.update_tool(
         Unique_Item_Number=Order_Dictionary.get('Unique_Item_Number'),
-        Order_State='Complete',
         Item_Process_State='with user'
     )
+    self.order_instance.update_order(
+        Unique_Order_ID=Order_Dictionary.get('Unique_Order_ID'),
+        Order_State='Not_Complete',
+    )
     self.view_listed_orders_UI()
-
-
-def owner_edit_view_individual_order_UI(self, Order_Dictionary, Tool_Dictionary):
-    self.go_back_menu = self.view_listed_orders_UI
-    self.reset_window()
-    self.root.resizable(width=False, height=False)
-    self.root.title("Shared Power - Tool")
-    self.add_menu_bar_UI_4()
-    # create parent
-    LBtext = "Edit Tool: " + Tool_Dictionary.get("Item_Name")
-    PWparent = Frame(
-        self.root_frame
-    )
-    # Order ID
-    order_ID = Order_Dictionary.get("Unique_Order_ID")
-
-    # StrVars
-    drop_off_fee_StrVar = StringVar()
-    feedback_StrVar = StringVar()
-    # Dropdown select
-    choices = {'with owner', 'with depot', 'with user',
-               'with insurance', 'being processed'}
-    default_selection = Tool_Dictionary.get('Item_Process_State', 'Error')
-    process_state_StrVar = StringVar()
-    process_state_StrVar.set(default_selection)
-    Label(PWparent, text="Item Process State:").grid(row=0, column=0)
-
-    # Custom GetImagesWidget
-    images_widget = GetImagesWidget(
-        PWparent, empty_message='Add Photo', max_items=3)
-
-    customer_feedback_box = Text(PWparent)
-    customer_feedback_label = Label(PWparent, text="Feedback:")
-    condition_photos_label = Label(PWparent, text="Tool Condition Photos:")
-
-    def show_and_hide_elements(ignoreevent):
-        orvar = False
-        if process_state_StrVar.get() == 'with depot':
-            orvar = True
-        elif process_state_StrVar.get() == 'with owner':
-            orvar = True
-        if orvar == True:
-            customer_feedback_label.grid(row=9, column=0)
-            customer_feedback_box.grid(
-                row=9, column=1, columnspan=2, sticky='w')
-            condition_photos_label.grid(row=10, column=0)
-            images_widget.grid(row=10, column=1, columnspan=2, sticky='w')
-        else:
-            customer_feedback_box.grid_forget()
-            images_widget.grid_forget()
-            customer_feedback_label.grid_forget()
-            condition_photos_label.grid_forget()
-    dropdown_select = OptionMenu(
-        PWparent,
-        process_state_StrVar,
-        command=show_and_hide_elements,
-        *choices
-    )
-    dropdown_select.grid(row=0, column=1, columnspan=2, sticky='w', pady=5)
-    # Place Buttons
-    _updateinfoB = Button(
-        PWparent,
-        text="Update Tool Information",
-        command=lambda: self.process_register_or_update_tool(
-            PWparent,
-            Order_ID=order_ID,
-            Drop_Off_Fee=drop_off_fee_StrVar,
-            Process_State=process_state_StrVar,
-            Customer_Feedback=feedback_StrVar,
-            Customer_Condition_Photos=images_widget,
-            Update=True
-        )
-    )
-    _updateinfoB.grid(column=5, ipadx=10, ipady=5, sticky='e')
-    # Place Parent
-    PWparent.grid(ipadx=50, ipady=30, padx=5, pady=5)
-    self.root.mainloop()
 
 
 def delete_order(self, tool_ID, images_to_delete):

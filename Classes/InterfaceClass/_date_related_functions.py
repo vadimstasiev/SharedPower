@@ -16,22 +16,25 @@ def view_bookings_Calendar_UI(self, ToolDictionary):
     for order in OrdersList:
         OrderDictionary = dict(
             zip(self.order_instance.orders_table_Index, order))
-        start_date = self.string_to_datetime(
-            OrderDictionary.get('Booking_Start_Day')
-        )
-        if OrderDictionary.get('Order_Type') == 'Full Day':
-            end_date = self.string_to_datetime(
-                OrderDictionary.get('Booking_End_Day')
+        if OrderDictionary.get('Order_State') != 'Complete':
+            start_date = self.string_to_datetime(
+                OrderDictionary.get('Booking_Start_Day')
             )
-            for i in range(0, (end_date-start_date).days+1):
-                date = start_date + cal.timedelta(days=i)
-                cal.calevent_create(date, 'Booked', 'full_day')
-        elif OrderDictionary.get('Order_Type') == 'Half Day':
-            order_hours = OrderDictionary.get('Order_Hours')
-            if order_hours == '6:00-12:00':
-                cal.calevent_create(start_date, 'Booked', 'half_day_morning')
-            elif order_hours == '12:00-18:00':
-                cal.calevent_create(start_date, 'Booked', 'half_day_evening')
+            if OrderDictionary.get('Order_Type') == 'Full Day':
+                end_date = self.string_to_datetime(
+                    OrderDictionary.get('Booking_End_Day')
+                )
+                for i in range(0, (end_date-start_date).days+1):
+                    date = start_date + cal.timedelta(days=i)
+                    cal.calevent_create(date, 'Booked', 'full_day')
+            elif OrderDictionary.get('Order_Type') == 'Half Day':
+                order_hours = OrderDictionary.get('Order_Hours')
+                if order_hours == '6:00-12:00':
+                    cal.calevent_create(
+                        start_date, 'Booked', 'half_day_morning')
+                elif order_hours == '12:00-18:00':
+                    cal.calevent_create(
+                        start_date, 'Booked', 'half_day_evening')
     cal.tag_config('full_day', background='red', foreground='yellow')
     cal.tag_config('half_day_morning', background='yellow', foreground='black')
     cal.tag_config('half_day_evening', background='green', foreground='black')

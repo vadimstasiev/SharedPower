@@ -369,14 +369,15 @@ def validate_booking(self, User_Dictionary, **kwargs):
         if OrderDictionary.get('Order_State') == 'Not_Complete':
             self.buffered_errors.append(
                 'You cannot book this tool again before the end of the last booking ' + self.datetime_to_string(order_end_datetime))
-    if date_conflict == True:
-        self.buffered_errors.append(
-            'Booking conflicts with existing order')
-    elif (end_datetime-start_datetime).days >= 3:
-        self.buffered_errors.append(
-            'You cannot book the tool for longer than 3 days')
-    elif User_Dictionary.get('Unique_User_ID') == kwargs.get('owner_ID'):
-        self.buffered_errors.append('You cannot book your own tool')
-    elif (start_datetime-datetime.datetime.now()).days/7 >= 6:
-        self.buffered_errors.append(
-            'You cannot book earlier than 6 weeks in advance')
+    if OrderDictionary.get('Order_State') != 'Complete':
+        if date_conflict == True:
+            self.buffered_errors.append(
+                'Booking conflicts with existing order')
+        elif (end_datetime-start_datetime).days >= 3:
+            self.buffered_errors.append(
+                'You cannot book the tool for longer than 3 days')
+        elif User_Dictionary.get('Unique_User_ID') == kwargs.get('owner_ID'):
+            self.buffered_errors.append('You cannot book your own tool')
+        elif (start_datetime-datetime.datetime.now()).days/7 >= 6:
+            self.buffered_errors.append(
+                'You cannot book earlier than 6 weeks in advance')
