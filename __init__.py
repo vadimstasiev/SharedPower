@@ -11,6 +11,9 @@ from Classes.InterfaceClass import UI_Interface
 
 if __name__ == '__main__':
     program = UI_Interface()
-    # program.run()
+    SkipLoginForTesting = False
+    if SkipLoginForTesting == True:
+        program.log_in_UI(email="test@test", password="123456789")
+    else:
+        program.run()
     # Skip Login for faster testing
-    program.log_in_UI(email="test@test", password="123456789")

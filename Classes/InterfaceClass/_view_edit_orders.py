@@ -102,8 +102,9 @@ def display_order_UI(self, __parent, order, **kw):
     if Tool_Dictionary.get('Item_Process_State', 'Error') == 'with user':
         viewB = Button(
             PWparent,
-            text="Dispach or Arrange Collection",
-            command=lambda: self.owner_edit_view_individual_order_UI(Order_Dictionary, Tool_Dictionary))
+            text="Return or Arrange Collection",
+            # command=lambda: self.owner_edit_view_individual_order_UI(Order_Dictionary, Tool_Dictionary))
+            command=lambda: self.return_or_arrange_collection(Order_Dictionary, Tool_Dictionary))
     else:
         viewB = Button(
             PWparent,
@@ -122,17 +123,40 @@ def display_order_UI(self, __parent, order, **kw):
     PWparent.grid(ipadx=50, ipady=30, padx=5, pady=5, sticky='we')
 
 
-# Mark as received Here
-def mark_as_received(self, Order_Dictionary):
+# Dispach/Arrange Collection Here
+
+def return_or_arrange_collection(self, Order_Dictionary, Tool_Dictionary):
+    top = Toplevel(self.root)
+    button1 = Button(
+        __widget,
+        text="Return",
+        command=lambda: self.mark_as_received(Order_Dictionary),
+    )
+    button2 = Button(
+        __widget,
+        text="Arrange Collection",
+        command=lambda: self.mark_as_received(Order_Dictionary),
+    )
+
+
+def mark_as_returned(self, Order_Dictionary):
     self.tool_instance.update_tool(
         Unique_Item_Number=Order_Dictionary.get('Unique_Item_Number'),
         Item_Process_State='with user'
     )
     self.view_listed_orders_UI()
 
-# Dispach/Arrange Collection Here
-
 # mark item as locked if it was already delivered
+
+# Mark as received Here
+
+
+def mark_as_received(self, Order_Dictionary):
+    self.tool_instance.update_tool(
+        Unique_Item_Number=Order_Dictionary.get('Unique_Item_Number'),
+        Item_Process_State='with user'
+    )
+    self.view_listed_orders_UI()
 
 
 def owner_edit_view_individual_order_UI(self, Order_Dictionary, Tool_Dictionary):
