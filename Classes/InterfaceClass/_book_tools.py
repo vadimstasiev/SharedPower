@@ -207,6 +207,7 @@ def user_view_tool_UI(self, Item_Dictionary, Owner_Dictionary):
     type_of_deliveryBtn2 = Radiobutton(
         PWparent, text="Collection by User", padx=20, variable=feesIntVar, value=1)
 
+    type_of_booking_StrVar = StringVar()
     # Submit button
     BookB = Button(
         PWparent,
@@ -255,7 +256,6 @@ def user_view_tool_UI(self, Item_Dictionary, Owner_Dictionary):
     # Type of booking Half Day or Full Day select
     choices = {'Half Day', 'Full Day'}
     default_selection = 'Please Select'
-    type_of_booking_StrVar = StringVar()
     type_of_booking_StrVar.set(default_selection)
     dropdown_select = OptionMenu(
         PWparent,
@@ -301,7 +301,7 @@ def process_book_tool(self, parent, Tool_Dictionary, **kwargs):
                 Order_Date=self.datetime_to_string(datetime.datetime.now()),
                 Pick_Up_Fee=pick_up_fee,
                 Order_Type=kwargs.get('type_of_booking'),
-                Order_Hours=kwargs.get('order_hours'),
+                Order_Hours='' if kwargs.get('order_hours')=='Please Select' else kwargs.get('order_hours'),
                 Booking_Start_Day=kwargs.get('start_date'),
                 Booking_End_Day=kwargs.get('end_date'),
                 Order_State='Not_Complete'
@@ -321,23 +321,24 @@ def validate_booking(self, User_Dictionary, **kwargs):
     booking_hours = kwargs.get('order_hours')
     if kwargs.get('order_hours') == 'Please Select' and kwargs.get('type_of_booking') == 'Half Day':
         self.buffered_errors.append('Please select the half day hours')
-        for order in OrdersList:
-            # get values
-            OrderDictionary = dict(
-                zip(self.order_instance.orders_table_Index, order)
+    for order in OrdersList:
+        # get values
+        OrderDictionary = dict(
+            zip(self.order_instance.orders_table_Index, order)
+        )
+        order_type = OrderDictionary.get('Order_Type')
+        order_start_datetime = self.string_to_datetime(
+            OrderDictionary.get('Booking_Start_Day')
+        )
+        order_hours = OrderDictionary.get('Order_Hours')
+        order_end_datetime = None
+        try:  # Field might be empty
+            order_end_datetime = self.string_to_datetime(
+                OrderDictionary.get('Booking_End_Day')
             )
-            order_type = OrderDictionary.get('Order_Type')
-            order_start_datetime = self.string_to_datetime(
-                OrderDictionary.get('Booking_Start_Day')
-            )
-            order_hours = OrderDictionary.get('Order_Hours')
-            order_end_datetime = None
-            try:  # Field might be empty
-                order_end_datetime = self.string_to_datetime(
-                    OrderDictionary.get('Booking_End_Day')
-                )
-            except:
-                pass
+        except:
+            pass
+        if OrderDictionary.get('Order_State') == 'Complete':
             # check validity
             if order_type == 'Full Day':
                 if booking_type == 'Full Day':
@@ -365,10 +366,9 @@ def validate_booking(self, User_Dictionary, **kwargs):
                             self.buffered_errors.append(
                                 'Ending date cannot be before starting date')
                 order_end_datetime = order_start_datetime
-            if OrderDictionary.get('Order_State') == 'Not_Complete':
-                self.buffered_errors.append(
-                    'You cannot book this tool again before the end of the last booking ' + self.datetime_to_string(order_end_datetime))
-
+        if OrderDictionary.get('Order_State') == 'Not_Complete':
+            self.buffered_errors.append(
+                'You cannot book this tool again before the end of the last booking ' + self.datetime_to_string(order_end_datetime))
     if date_conflict == True:
         self.buffered_errors.append(
             'Booking conflicts with existing order')

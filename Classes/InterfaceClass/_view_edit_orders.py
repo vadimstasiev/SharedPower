@@ -28,7 +28,7 @@ def view_listed_orders_UI(self):  # TODO display ordeers by tool ID - for owners
         __i += 1
         Order_Dictionary = dict(
             zip(self.order_instance.orders_table_Index, order))
-        if Order_Dictionary.get('Order_State') == 'Complete':
+        if Order_Dictionary.get('Order_State') == 'Not_Complete':
             display_list.append(order)
     if len(display_list) != 0:
         for _order in display_list:
