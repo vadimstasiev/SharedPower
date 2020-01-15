@@ -2,7 +2,6 @@
 venv
 Deleted
 *.pyc
-*.db
 *.json
 *.jpg
 *.png
