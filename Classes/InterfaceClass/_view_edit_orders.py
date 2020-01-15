@@ -36,7 +36,7 @@ def view_listed_orders_UI(self):  # TODO display ordeers by tool ID - for owners
                 zip(self.order_instance.orders_table_Index, _order))
             self.display_order_UI(sc.container, Order_Dictionary)
     else:
-        Label(sc.container, text="You don't have any orders",
+        Label(sc.container, text="You don't have any active orders",
               font=("Helvetica", 20)).grid(padx=100, pady=300)
     sc.grid(row=0, column=0, sticky='nsew')
     # Show any errors that might have come up
@@ -122,15 +122,15 @@ def display_order_UI(self, __parent, Order_Dictionary, **kw):
                 PWparent,
                 text="Return or Arrange Collection",
                 command=lambda: self.return_or_arrange_collection(Order_Dictionary, Tool_Dictionary))
-        else:
-            editB = Button(
-                PWparent,
-                text="Cancel Order",
-                command=lambda: self.cancel_order(Order_Dictionary, Tool_Dictionary))
-            editB.grid(column=0, row=2, rowspan=2, pady=10, padx=25,
-                       ipadx=40, ipady=2, sticky='we')
         viewB.grid(column=0, row=0, rowspan=2, pady=10, padx=25,
                    ipadx=40, ipady=2, sticky='we')
+    else:
+        editB = Button(
+            PWparent,
+            text="Cancel Order",
+            command=lambda: self.cancel_order(Order_Dictionary, Tool_Dictionary))
+        editB.grid(column=0, row=2, rowspan=2, pady=10,
+                   padx=25, ipadx=40, ipady=2, sticky='we')
     PWparent.grid(ipadx=50, ipady=30, padx=5, pady=5, sticky='we')
 
 
@@ -170,15 +170,24 @@ def return_or_arrange_collection(self, Order_Dictionary, Tool_Dictionary):
         top,
         text="Request Pick-Up",
         command=lambda: self.mark_as_returned_to_owner(
-            Order_Dictionary, customer_feedback_box, images_widget, returnto='depot', fee=True),
+            Order_Dictionary, customer_feedback_box, images_widget, returnto='depot', dispach_fee=True),
     ).pack(fill="both", expand=True)
 
 
-def mark_as_returned_to_owner(self, Order_Dictionary, customer_feedback_box, images_widget, returnto, fee=False):
+def mark_as_returned_to_owner(self, Order_Dictionary, customer_feedback_box, images_widget, returnto, dispach_fee=False):
+    time_now = datetime.datetime.now()
+    # days_late=self.string_to_datetime(f'{last_day}/{month}/{year}')
+    booking_endday = self.string_to_datetime(
+        Order_Dictionary.get('Booking_End_Day'))
+    days_late = 0
+    if time_now > booking_endday:
+        days_late = (time_now-booking_endday).days
+
     self.order_instance.update_order(
         Unique_Order_ID=Order_Dictionary.get("Unique_Order_ID"),
         Customer_Feedback=customer_feedback_box.get(
             "1.0", 'end-1c').replace("'", "''"),
+        Days_Late=str(days_late),
         Customer_Condition_Photos=self.get_image_paths_str_DB_ready(
             images_widget)
     )
@@ -192,7 +201,7 @@ def mark_as_returned_to_owner(self, Order_Dictionary, customer_feedback_box, ima
             Unique_Item_Number=Order_Dictionary.get('Unique_Item_Number'),
             Item_Process_State='with depot'
         )
-    if fee == True:
+    if dispach_fee == True:
         Tool_Dictionary = self.tool_instance.fetch_tool_by_tool_id(
             Order_Dictionary.get('Unique_Item_Number'))
         self.order_instance.update_order(

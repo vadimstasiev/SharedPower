@@ -48,13 +48,13 @@ class InvoiceClass:
                 indentifying_expr, replace_with_expr
             )
 
-    def fetch_invoice_by_month_id(self, Month_Invoice_ID):
+    def fetch_invoice_by_month_id_and_user(self, Month_Invoice_ID, User_ID):
         self.DB_Link.select_table(self.invoice_table)
         __list_results = self.DB_Link.fetch_lines_from_db(
-            f"Month_Invoice_ID = '{Month_Invoice_ID}'")
-        invoice = {}
+            f"Month_Invoice_ID = '{Month_Invoice_ID}' AND Unique_User_ID = '{User_ID}'")
+        invoice = []
         if len(__list_results) > 0:
-            invoice = dict(zip(self.invoice_table_Index, __list_results[0]))
+            invoice = __list_results[0]
         return invoice
 
 

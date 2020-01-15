@@ -9,6 +9,7 @@ except:
 
 def view_bookings_Calendar_UI(self, ToolDictionary):
     top = Toplevel(self.root)
+    top.attributes('-topmost', 'true')
     cal = Calendar(top, selectmode='none', day=40, date_pattern='d/m/yyyy')
     Tool_ID = ToolDictionary.get('Unique_Item_Number', '')
     OrdersList = self.order_instance.fetch_orders_from_tool_id(Tool_ID)

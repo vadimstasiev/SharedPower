@@ -77,6 +77,12 @@ class OrderClass:
             f"Unique_Item_Number = '{Tool_ID}'")
         return __list_results
 
+    def fetch_invoiced_orders(self, User_ID):
+        self.DB_Link.select_table(self.orders_table)
+        __list_results = self.DB_Link.fetch_lines_from_db(
+            f"Unique_User_ID = '{User_ID}' AND Invoiced != ''")
+        return __list_results
+
 
 if __name__ == '__main__':
     print("Please run the program from __init__.py")

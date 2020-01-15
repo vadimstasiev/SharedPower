@@ -13,7 +13,7 @@ def user_view_all_tools_UI(self):
     self.go_back_menu = self.menu_user_options_UI
     self.reset_window()
     self.root.resizable(width=True, height=True)
-    self.root.title("Shared Power - View Stock Inventory")
+    self.root.title("Shared Power - Browse Global Inventory")
     self.add_menu_bar_UI_4()
     self.root.grid_rowconfigure(0, weight=1)
     self.root.grid_columnconfigure(0, weight=1)
@@ -340,25 +340,28 @@ def validate_booking(self, User_Dictionary, **kwargs):
         except:
             pass
         if OrderDictionary.get('Unique_User_ID') != User_Dictionary.get('Unique_User_ID'):
-            if order_type == 'Full Day':
-                if booking_type == 'Full Day':
+            if order_type == 'Full Day':   # order from dictionary
+                if booking_type == 'Full Day':  # order from user
+                    if start_datetime > end_datetime:
+                        self.buffered_errors.append(
+                            'Ending date cannot be before starting date')
                     if order_start_datetime <= start_datetime <= order_end_datetime:
                         date_conflict = True
                     elif order_start_datetime <= end_datetime <= order_end_datetime:
                         date_conflict = True
-                elif booking_type == 'Half Day':
+                elif booking_type == 'Half Day':  # order from user
                     if order_start_datetime <= start_datetime <= order_end_datetime:
                         date_conflict = True
+            elif order_type == 'Half Day':  # order from dictionary
+                if booking_type == 'Full Day':  # order from user
                     if start_datetime > end_datetime:
                         self.buffered_errors.append(
                             'Ending date cannot be before starting date')
-            elif order_type == 'Half Day':
-                if booking_type == 'Full Day':
                     if order_start_datetime == start_datetime:
                         date_conflict = True
                     elif order_start_datetime == end_datetime:
                         date_conflict = True
-                elif booking_type == 'Half Day':
+                elif booking_type == 'Half Day':  # order from user
                     if order_start_datetime == start_datetime:
                         if order_hours == booking_hours:
                             date_conflict = True
