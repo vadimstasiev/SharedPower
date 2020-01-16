@@ -126,6 +126,14 @@ def display_order_UI(self, __parent, Order_Dictionary, **kw):
                 command=lambda: self.return_or_arrange_collection(Order_Dictionary, Tool_Dictionary))
             viewB.grid(column=0, row=0, rowspan=2, pady=10, padx=25,
                        ipadx=40, ipady=2, sticky='we')
+        elif tool_process_state == 'with insurance':
+            self.order_instance.cancel_order(
+                Order_Dictionary.get('Unique_Order_ID'))
+            viewB = Button(
+                PWparent,
+                text="This order is now canceled")
+            viewB.grid(column=0, row=0, rowspan=2, pady=10, padx=25,
+                       ipadx=40, ipady=2, sticky='we')
     else:
         editB = Button(
             PWparent,
