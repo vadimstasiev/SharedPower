@@ -117,13 +117,15 @@ def display_order_UI(self, __parent, Order_Dictionary, **kw):
                 text="Mark as Received",
                 command=lambda: self.mark_as_received(Order_Dictionary)
             )
+            viewB.grid(column=0, row=0, rowspan=2, pady=10, padx=25,
+                       ipadx=40, ipady=2, sticky='we')
         elif tool_process_state == 'with user':
             viewB = Button(
                 PWparent,
                 text="Return or Arrange Collection",
                 command=lambda: self.return_or_arrange_collection(Order_Dictionary, Tool_Dictionary))
-        viewB.grid(column=0, row=0, rowspan=2, pady=10, padx=25,
-                   ipadx=40, ipady=2, sticky='we')
+            viewB.grid(column=0, row=0, rowspan=2, pady=10, padx=25,
+                       ipadx=40, ipady=2, sticky='we')
     else:
         editB = Button(
             PWparent,
