@@ -11,7 +11,7 @@ except:
 
 def view_month_invoice_UI(self):
     #####
-    FLAT_CHARGE = 5  # Pounds
+    FLAT_CHARGE = 500  # Pennies
     ######
     self.go_back_menu = self.menu_user_options_UI
     self.reset_window()
